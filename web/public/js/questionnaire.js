@@ -4,7 +4,7 @@
   const lid = params.get('lid');
   if (lid) answers.lid = lid;
   let currentQuestion = 1;
-  const totalQuestions = 14;
+  const totalQuestions = 15;
 
   const LABELS = {
     age: {
@@ -89,24 +89,17 @@
       answers[qEl.dataset.key] = vals;
       return true;
     }
-    return true;
-  }
-
-  function collectContact() {
-    const name = $('#name').value.trim();
-    const phone = $('#phone').value.trim();
-    const line_id = $('#line_id').value.trim();
-    const email = $('#email').value.trim();
-    if (!name) { alert('請填寫姓名'); return false; }
-    if (!phone && !line_id && !email) {
-      alert('請至少留下一種聯絡方式（電話 / LINE ID / Email）');
-      return false;
+    if (type === 'contact') {
+      const name = $('#name').value.trim();
+      const phone = $('#phone').value.trim();
+      if (!name || !phone) { alert('請填寫姓名和電話'); return false; }
+      answers.name = name;
+      answers.phone = phone;
+      answers.line_id = $('#line_id').value.trim();
+      answers.email = $('#email').value.trim();
+      answers.contact_time = $('#contact_time').value;
+      return true;
     }
-    answers.name = name;
-    answers.phone = phone;
-    answers.line_id = line_id;
-    answers.email = email;
-    answers.contact_time = $('#contact_time').value;
     return true;
   }
 
@@ -227,9 +220,8 @@
 
   async function submitForm(e) {
     e.preventDefault();
-    if (!collectContact()) return;
     const btn = e.currentTarget;
-    btn.disabled = true;
+    btn.style.pointerEvents = 'none';
     btn.textContent = '送出中...';
     try {
       const res = await fetch('/api/submissions', {
@@ -239,20 +231,14 @@
       });
       if (!res.ok) throw new Error('提交失敗');
       const data = await res.json();
-      $('#contactSection').style.display = 'none';
-      const sec = $('#submitSection');
-      sec.classList.add('active');
+      document.querySelector('.cta-section').style.display = 'none';
+      $('#submitSection').classList.add('active');
       $('#formId').textContent = 'FB' + String(data.id).padStart(6, '0');
     } catch (err) {
       alert('提交失敗：' + err.message);
-      btn.disabled = false;
-      btn.textContent = '✅ 送出諮詢需求';
+      btn.style.pointerEvents = '';
+      btn.textContent = '確認送出諮詢';
     }
-  }
-
-  function skipContact() {
-    $('#contactSection').style.display = 'none';
-    $('#skipThanks').classList.add('active');
   }
 
   function init() {
@@ -261,7 +247,6 @@
     $('#nextBtn').addEventListener('click', nextQuestion);
     $('#prevBtn').addEventListener('click', prevQuestion);
     $('#submitBtn').addEventListener('click', submitForm);
-    $('#skipBtn').addEventListener('click', skipContact);
     $('#prevBtn').style.display = 'none';
     updateProgress();
   }

@@ -41,11 +41,8 @@ app.post('/api/recommendations', (req, res) => {
 
 app.post('/api/submissions', asyncHandler(async (req, res) => {
   const body = req.body || {};
-  if (!body.name) {
-    return res.status(400).json({ error: 'name is required' });
-  }
-  if (!body.phone && !body.line_id && !body.email) {
-    return res.status(400).json({ error: 'at least one contact method required' });
+  if (!body.name || !body.phone) {
+    return res.status(400).json({ error: 'name and phone are required' });
   }
 
   let lineUserId = null;
