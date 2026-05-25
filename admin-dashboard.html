@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>富邦保單推薦系統 - 後台管理</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; }
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .logout-btn:hover {
+            background: white;
+            color: #1e3a5f;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        /* 統計卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .stat-card .label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        .stat-card .change {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .change.up { color: #10b981; }
+        .change.down { color: #ef4444; }
+        .stat-card .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .icon-blue { background: #dbeafe; }
+        .icon-green { background: #d1fae5; }
+        .icon-orange { background: #fef3c7; }
+        .icon-purple { background: #ede9fe; }
+        
+        /* 圖表區 */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .chart-card h3 {
+            color: #1e3a5f;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+        
+        /* 搜尋和篩選 */
+        .filter-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .filter-group label {
+            display: block;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-export {
+            background: #10b981;
+            color: white;
+        }
+        
+        /* 客戶列表 */
+        .table-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .table-header h3 {
+            color: #1e3a5f;
+            font-size: 18px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            color: #333;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .tag-high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .tag-medium {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .tag-low {
+            background: #d1fae5;
+            color: #059669;
+        }
+        .tag-new {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .tag-contacted {
+            background: #ede9fe;
+            color: #7c3aed;
+        }
+        .tag-closed {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .btn-view {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .btn-call {
+            background: #d1fae5;
+            color: #059669;
+        }
+        .btn-email {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        /* 分頁 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        .pagination button {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .pagination button.active {
+            background: #1e3a5f;
+            color: white;
+            border-color: #1e3a5f;
+        }
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* 客戶詳情 Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow: hidden;
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 {
+            margin: 0;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .modal-body {
+            padding: 25px;
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .detail-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .detail-item label {
+            color: #666;
+            font-size: 12px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .detail-item value {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        /* 登入頁 */
+        .login-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+        }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .login-box h2 {
+            color: #1e3a5f;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        /* 隱藏主內容 */
+        .main-content {
+            display: none;
+        }
+        .main-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登入頁 -->
+    <div class="login-page" id="loginPage">
+        <div class="login-box">
+            <h2>🏦 富邦保單推薦系統</h2>
+            <h3 style="text-align: center; color: #666; margin-bottom: 30px;">後台管理</h3>
+            <div class="form-group">
+                <label>使用者名稱</label>
+                <input type="text" id="username" placeholder="請輸入使用者名稱">
+            </div>
+            <div class="form-group">
+                <label>密碼</label>
+                <input type="password" id="password" placeholder="請輸入密碼">
+            </div>
+            <button class="login-btn" onclick="login()">登入</button>
+            <p style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+                預設帳號：admin / 密碼：fubon2024
+            </p>
+        </div>
+    </div>
+
+    <!-- 主內容 -->
+    <div class="main-content" id="mainContent">
+        <div class="header">
+            <h1>🏦 富邦保單推薦系統 - 後台管理</h1>
+            <div class="user-info">
+                <span>👤 管理員</span>
+                <button class="logout-btn" onclick="logout()">登出</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- 統計卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon icon-blue">👥</div>
+                    <div class="label">總客戶數</div>
+                    <div class="value" id="totalCustomers">0</div>
+                    <div class="change up">↑ <span id="newThisMonth">0</span> 本月新增</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon icon-green">📋</div>
+                    <div class="label">待聯繫</div>
+                    <div class="value" id="pendingContact">0</div>
+                    <div class="change">需盡快處理</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon icon-orange">💰</div>
+                    <div class="label">高資產客戶</div>
+                    <div class="value" id="highAssetCustomers">0</div>
+                    <div class="change up">年收 500萬+ / 資產 3000萬+</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon icon-purple">📊</div>
+                    <div class="label">本週新增</div>
+                    <div class="value" id="weeklyNew">0</div>
+                    <div class="change">持續追蹤</div>
+                </div>
+            </div>
+
+            <!-- 圖表 -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>📈 客戶來源分布</h3>
+                    <div class="chart-container">
+                        <canvas id="sourceChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>🎯 規劃目標統計</h3>
+                    <div class="chart-container">
+                        <canvas id="goalChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 篩選區 -->
+            <div class="filter-section">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label>搜尋姓名/電話</label>
+                        <input type="text" id="searchText" placeholder="輸入關鍵字...">
+                    </div>
+                    <div class="filter-group">
+                        <label>年齡區間</label>
+                        <select id="filterAge">
+                            <option value="">全部</option>
+                            <option value="0-18">0-18歲</option>
+                            <option value="19-30">19-30歲</option>
+                            <option value="31-50">31-50歲</option>
+                            <option value="51-65">51-65歲</option>
+                            <option value="66+">66歲以上</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>年收入</label>
+                        <select id="filterIncome">
+                            <option value="">全部</option>
+                            <option value="below_50">50萬以下</option>
+                            <option value="50_100">50萬-100萬</option>
+                            <option value="100_200">100萬-200萬</option>
+                            <option value="200_500">200萬-500萬</option>
+                            <option value="above_500">500萬以上</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>處理狀態</label>
+                        <select id="filterStatus">
+                            <option value="">全部</option>
+                            <option value="new">新案件</option>
+                            <option value="contacted">已聯繫</option>
+                            <option value="closed">已結案</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" onclick="applyFilters()">🔍 搜尋</button>
+                    <button class="btn btn-secondary" onclick="resetFilters()">🔄 重置</button>
+                    <button class="btn btn-export" onclick="exportData()">📥 匯出 Excel</button>
+                </div>
+            </div>
+
+            <!-- 客戶列表 -->
+            <div class="table-section">
+                <div class="table-header">
+                    <h3>📋 客戶資料列表</h3>
+                    <span style="color: #666; font-size: 14px;">共 <span id="totalRecords">0</span> 筆資料</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="customerTable">
+                        <thead>
+                            <tr>
+                                <th>時間</th>
+                                <th>姓名</th>
+                                <th>電話</th>
+                                <th>年齡</th>
+                                <th>年收入</th>
+                                <th>規劃目標</th>
+                                <th>推薦保單</th>
+                                <th>狀態</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- 動態生成 -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="pagination">
+                    <!-- 動態生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 客戶詳情 Modal -->
+    <div class="modal-overlay" id="customerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>📋 客戶詳細資料</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 動態生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 登入驗證
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === 'admin' && password === 'fubon2024') {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('mainContent').classList.add('active');
+                loadDashboard();
+            } else {
+                alert('帳號或密碼錯誤！');
+            }
+        }
+        
+        function logout() {
+            location.reload();
+        }
+        
+        // 模擬資料（實際應從 Google Sheets API 取得）
+        let customerData = [];
+        
+        // 產生模擬資料
+        function generateMockData() {
+            const names = ['陳先生', '林小姐', '王先生', '張先生', '李小姐', '黃先生', '劉小姐', '楊先生'];
+            const ages = ['19-30', '31-50', '31-50', '51-65', '19-30', '31-50', '51-65', '31-50'];
+            const incomes = ['50_100', '100_200', '200_500', 'above_500', 'below_50', '100_200', '200_500', '100_200'];
+            const goals = ['基本保障', '儲蓄理財,退休規劃', '節稅規劃,遺產傳承', '債務隔離,資產保護', '基本保障', '退休規劃', '節稅規劃', '基本保障'];
+            const products = ['新平準終身壽險', '月月吉利還本壽險', '新吉好利增額壽險', '金好運萬能壽險', '安心好漾定期險', '金萬利終身保險', '珍吉利增額壽險', '吉鑽利還本壽險'];
+            const statuses = ['new', 'contacted', 'new', 'contacted', 'closed', 'new', 'contacted', 'new'];
+            
+            for (let i = 0; i < 50; i++) {
+                const idx = i % 8;
+                customerData.push({
+                    id: i + 1,
+                    timestamp: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    name: names[idx] + (i > 7 ? i : ''),
+                    phone: '09' + Math.floor(Math.random() * 100000000).toString().padStart(8, '0'),
+                    email: 'customer' + i + '@email.com',
+                    age: ages[idx],
+                    gender: idx % 2 === 0 ? 'male' : 'female',
+                    job: ['employee', 'business_owner', 'professional'][idx % 3],
+                    income: incomes[idx],
+                    family: 'married_young_kid',
+                    budget: '5000_10000',
+                    existing: ['醫療險'],
+                    planningGoals: goals[idx].split(','),
+                    asset: ['1000_3000', '3000_10000', 'below_500'][idx % 3],
+                    taxNeed: idx % 3 === 0 ? 'yes_urgent' : 'no',
+                    inheritance: idx % 2 === 0 ? 'yes_plan' : 'maybe',
+                    debtRisk: idx === 2 ? 'yes_business' : 'no',
+                    risk: 'moderate',
+                    foreignCurrency: 'no',
+                    contactTime: 'morning',
+                    recommendedProducts: products[idx],
+                    status: statuses[idx]
+                });
+            }
+        }
+        
+        // 載入儀表板
+        function loadDashboard() {
+            generateMockData();
+            updateStats();
+            initCharts();
+            renderTable(1);
+        }
+        
+        // 更新統計數字
+        function updateStats() {
+            document.getElementById('totalCustomers').textContent = customerData.length;
+            document.getElementById('newThisMonth').textContent = Math.floor(customerData.length * 0.3);
+            document.getElementById('pendingContact').textContent = customerData.filter(c => c.status === 'new').length;
+            document.getElementById('highAssetCustomers').textContent = customerData.filter(c => 
+                c.income === 'above_500' || c.asset === '3000_10000' || c.asset === 'above_10000'
+            ).length;
+            document.getElementById('weeklyNew').textContent = Math.floor(customerData.length * 0.1);
+        }
+        
+        // 初始化圖表
+        function initCharts() {
+            // 來源分布圖（模擬）
+            new Chart(document.getElementById('sourceChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['QR Code', 'LINE Bot', 'Messenger', '直接連結', '其他'],
+                    datasets: [{
+                        data: [35, 25, 15, 20, 5],
+                        backgroundColor: ['#1e3a5f', '#4a90d9', '#10b981', '#f59e0b', '#6b7280']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // 規劃目標圖
+            new Chart(document.getElementById('goalChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['基本保障', '儲蓄理財', '退休規劃', '節稅規劃', '債務隔離'],
+                    datasets: [{
+                        label: '客戶數',
+                        data: [25, 18, 15, 12, 8],
+                        backgroundColor: '#1e3a5f'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+        
+        // 渲染表格
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        
+        function renderTable(page) {
+            currentPage = page;
+            const filtered = getFilteredData();
+            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = filtered.slice(start, end);
+            
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = pageData.map(customer => {
+                const date = new Date(customer.timestamp).toLocaleDateString('zh-TW');
+                const statusClass = {
+                    'new': 'tag-new',
+                    'contacted': 'tag-contacted',
+                    'closed': 'tag-closed'
+                }[customer.status] || 'tag-new';
+                
+                const statusText = {
+                    'new': '新案件',
+                    'contacted': '已聯繫',
+                    'closed': '已結案'
+                }[customer.status] || '新案件';
+                
+                const priority = (customer.income === 'above_500' || customer.asset === '3000_10000') ? 
+                    '<span class="tag tag-high">高資產</span>' : '';
+                
+                return `
+                    <tr>
+                        <td>${date}</td>
+                        <td><strong>${customer.name}</strong></td>
+                        <td>${customer.phone}</td>
+                        <td>${customer.age}</td>
+                        <td>${getIncomeText(customer.income)}</td>
+                        <td>${customer.planningGoals.slice(0, 2).join(', ')}</td>
+                        <td>${customer.recommendedProducts}</td>
+                        <td>${priority} <span class="tag ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="viewCustomer(${customer.id})">查看</button>
+                            <button class="action-btn btn-call" onclick="callCustomer('${customer.phone}')">電話</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            document.getElementById('totalRecords').textContent = filtered.length;
+            renderPagination(totalPages);
+        }
+        
+        function getIncomeText(income) {
+            const map = {
+                'below_50': '50萬以下',
+                '50_100': '50-100萬',
+                '100_200': '100-200萬',
+                '200_500': '200-500萬',
+                'above_500': '500萬+'
+            };
+            return map[income] || income;
+        }
+        
+        function getFilteredData() {
+            const searchText = document.getElementById('searchText').value.toLowerCase();
+            const age = document.getElementById('filterAge').value;
+            const income = document.getElementById('filterIncome').value;
+            const status = document.getElementById('filterStatus').value;
+            
+            return customerData.filter(c => {
+                if (searchText && !c.name.toLowerCase().includes(searchText) && !c.phone.includes(searchText)) return false;
+                if (age && c.age !== age) return false;
+                if (income && c.income !== income) return false;
+                if (status && c.status !== status) return false;
+                return true;
+            });
+        }
+        
+        function renderPagination(totalPages) {
+            const pagination = document.getElementById('pagination');
+            let html = `
+                <button ${currentPage === 1 ? 'disabled' : ''} onclick="renderTable(${currentPage - 1})">上一頁</button>
+            `;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    html += `<button class="${i === currentPage ? 'active' : ''}" onclick="renderTable(${i})">${i}</button>`;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    html += `<span>...</span>`;
+                }
+            }
+            
+            html += `
+                <button ${currentPage === totalPages ? 'disabled' : ''} onclick="renderTable(${currentPage + 1})">下一頁</button>
+            `;
+            
+            pagination.innerHTML = html;
+        }
+        
+        // 篩選功能
+        function applyFilters() {
+            renderTable(1);
+        }
+        
+        function resetFilters() {
+            document.getElementById('searchText').value = '';
+            document.getElementById('filterAge').value = '';
+            document.getElementById('filterIncome').value = '';
+            document.getElementById('filterStatus').value = '';
+            renderTable(1);
+        }
+        
+        // 查看客戶詳情
+        function viewCustomer(id) {
+            const customer = customerData.find(c => c.id === id);
+            if (!customer) return;
+            
+            document.getElementById('modalBody').innerHTML = `
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <label>姓名</label>
+                        <value>${customer.name}</value>
+                    </div>
+                    <div class="detail-item">
+                        <label>電話</label>
+                        <value>${customer.phone}</value>
+                    </div>
+                    <div class="detail-item">
+                        <label>Email</label>
+                        <value>${customer.email || '未提供'}</value>
+                    </div>
+                    <div class="detail-item">
+                        <label>年齡區間</label>
+                        <value>${customer.age}</value>
+                    </div>
+                    <div class="detail-item">
+                        <label>年收入</label>
+                        <value>${getIncomeText(customer.income)}</value>
+                    </div>
+                    <div class="detail-item">
+                        <label>資產規模</label>
+                        <value>${customer.asset}</value>
+                    </div>
+                    <div class="detail-item">
+                        <label>職業</label>
+                        <value>${customer.job}</value>
+                    </div>
+                    <div class="detail-item">
+                        <label>家庭狀況</label>
+                        <value>${customer.family}</value>
+                    </div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #1e3a5f; margin-bottom: 10px;">🎯 規劃目標</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${customer.planningGoals.map(g => `<span class="tag tag-medium">${g}</span>`).join('')}
+                    </div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #1e3a5f; margin-bottom: 10px;">📋 既有保單</h4>
+                    <p>${customer.existing.join(', ') || '無'}</p>
+                </div>
+                <div style="background: #f0f7ff; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h4 style="color: #1e3a5f; margin-bottom: 10px;">🏆 系統推薦保單</h4>
+                    <p style="font-size: 18px; font-weight: bold; color: #1e40af;">${customer.recommendedProducts}</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" onclick="updateStatus(${customer.id}, 'contacted'); closeModal();">標記已聯繫</button>
+                    <button class="btn btn-secondary" onclick="updateStatus(${customer.id}, 'closed'); closeModal();">標記已結案</button>
+                    <button class="btn btn-export" onclick="window.open('tel:${customer.phone}')">撥打電話</button>
+                </div>
+            `;
+            
+            document.getElementById('customerModal').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('customerModal').classList.remove('active');
+        }
+        
+        function updateStatus(id, status) {
+            const customer = customerData.find(c => c.id === id);
+            if (customer) {
+                customer.status = status;
+                renderTable(currentPage);
+                updateStats();
+            }
+        }
+        
+        function callCustomer(phone) {
+            window.open(`tel:${phone}`);
+        }
+        
+        // 匯出資料
+        function exportData() {
+            const filtered = getFilteredData();
+            const csv = convertToCSV(filtered);
+            downloadCSV(csv, '富邦客戶資料.csv');
+        }
+        
+        function convertToCSV(data) {
+            const headers = ['時間', '姓名', '電話', 'Email', '年齡', '年收入', '資產', '規劃目標', '推薦保單', '狀態'];
+            const rows = data.map(c => [
+                new Date(c.timestamp).toLocaleDateString('zh-TW'),
+                c.name,
+                c.phone,
+                c.email,
+                c.age,
+                getIncomeText(c.income),
+                c.asset,
+                c.planningGoals.join(';'),
+                c.recommendedProducts,
+                c.status
+            ]);
+            
+            return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        }
+        
+        function downloadCSV(csv, filename) {
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        }
+        
+        // 點擊 Modal 外部關閉
+        document.getElementById('customerModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        
+        // Enter 鍵登入
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
+    </script>
+</body>
+</html>

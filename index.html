@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>富邦保單智能推薦系統</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 24px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .progress-bar {
+            background: #e0e0e0;
+            height: 6px;
+            width: 100%;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #1e3a5f, #4a90d9);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .content {
+            padding: 30px;
+            min-height: 400px;
+        }
+        .question {
+            display: none;
+        }
+        .question.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .question h3 {
+            color: #1e3a5f;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .question-number {
+            color: #4a90d9;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .option {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .option:hover {
+            border-color: #4a90d9;
+            background: #f0f7ff;
+        }
+        .option.selected {
+            border-color: #1e3a5f;
+            background: #1e3a5f;
+            color: white;
+        }
+        .option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #1e3a5f;
+        }
+        .input-group {
+            margin-top: 20px;
+        }
+        .input-group label {
+            display: block;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #4a90d9;
+        }
+        .checkbox-group {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .checkbox-item:hover {
+            border-color: #4a90d9;
+        }
+        .checkbox-item input {
+            width: 20px;
+            height: 20px;
+        }
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(30,58,95,0.3);
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .result-section {
+            display: none;
+            padding: 30px;
+        }
+        .result-section.active {
+            display: block;
+        }
+        .profile-summary {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .profile-summary h4 {
+            color: #1e3a5f;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .profile-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .profile-item:last-child {
+            border-bottom: none;
+        }
+        .recommendation-card {
+            background: linear-gradient(135deg, #f0f7ff 0%, #e8f4f8 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #1e3a5f;
+        }
+        .recommendation-card h4 {
+            color: #1e3a5f;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        .recommendation-card .badge {
+            display: inline-block;
+            background: #1e3a5f;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .recommendation-card ul {
+            margin: 15px 0 0 20px;
+        }
+        .recommendation-card li {
+            margin: 8px 0;
+            color: #333;
+        }
+        .cta-section {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            margin-top: 25px;
+        }
+        .cta-section h4 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #1e3a5f;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: all 0.2s;
+        }
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        .priority-high {
+            border-left-color: #dc2626;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        }
+        .priority-medium {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+        .priority-low {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        }
+        .submit-section {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+        }
+        .submit-section p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 富邦保單智能推薦系統</h1>
+            <p>為您量身打造最適合的保險規劃方案</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+        
+        <!-- 問卷區 -->
+        <div id="questionnaire" class="content">
+            
+            <!-- Q1: 年齡 -->
+            <div class="question active" data-q="1">
+                <span class="question-number">問題 1 / 15</span>
+                <h3>您的年齡區間是？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'age', '0-18')">
+                        <input type="radio" name="age" value="0-18">
+                        <span>0-18歲（學齡期）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'age', '19-30')">
+                        <input type="radio" name="age" value="19-30">
+                        <span>19-30歲（青年期）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'age', '31-50')">
+                        <input type="radio" name="age" value="31-50">
+                        <span>31-50歲（壯年期）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'age', '51-65')">
+                        <input type="radio" name="age" value="51-65">
+                        <span>51-65歲（準退休期）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'age', '66+')">
+                        <input type="radio" name="age" value="66+">
+                        <span>66歲以上（退休期）</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q2: 性別 -->
+            <div class="question" data-q="2">
+                <span class="question-number">問題 2 / 15</span>
+                <h3>您的性別？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'gender', 'male')">
+                        <input type="radio" name="gender" value="male">
+                        <span>男性</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'gender', 'female')">
+                        <input type="radio" name="gender" value="female">
+                        <span>女性</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q3: 職業類別 -->
+            <div class="question" data-q="3">
+                <span class="question-number">問題 3 / 15</span>
+                <h3>您目前的職業類別？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'job', 'employee')">
+                        <input type="radio" name="job" value="employee">
+                        <span>一般上班族</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'job', 'business_owner')">
+                        <input type="radio" name="job" value="business_owner">
+                        <span>企業主 / 自營商</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'job', 'professional')">
+                        <input type="radio" name="job" value="professional">
+                        <span>專業人士（醫師、律師、會計師等）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'job', 'sales')">
+                        <input type="radio" name="job" value="sales">
+                        <span>業務/外勤工作</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'job', 'retired')">
+                        <input type="radio" name="job" value="retired">
+                        <span>已退休</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q4: 年收入 -->
+            <div class="question" data-q="4">
+                <span class="question-number">問題 4 / 15</span>
+                <h3>您的年收入大約是多少？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'income', 'below_50')">
+                        <input type="radio" name="income" value="below_50">
+                        <span>50萬以下</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'income', '50_100')">
+                        <input type="radio" name="income" value="50_100">
+                        <span>50萬-100萬</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'income', '100_200')">
+                        <input type="radio" name="income" value="100_200">
+                        <span>100萬-200萬</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'income', '200_500')">
+                        <input type="radio" name="income" value="200_500">
+                        <span>200萬-500萬</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'income', 'above_500')">
+                        <input type="radio" name="income" value="above_500">
+                        <span>500萬以上（高資產族群）</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q5: 家庭狀況 -->
+            <div class="question" data-q="5">
+                <span class="question-number">問題 5 / 15</span>
+                <h3>您目前的家庭狀況？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'family', 'single')">
+                        <input type="radio" name="family" value="single">
+                        <span>單身</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'family', 'married_no_kid')">
+                        <input type="radio" name="family" value="married_no_kid">
+                        <span>已婚無子女</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'family', 'married_young_kid')">
+                        <input type="radio" name="family" value="married_young_kid">
+                        <span>已婚有未成年子女</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'family', 'married_adult_kid')">
+                        <input type="radio" name="family" value="married_adult_kid">
+                        <span>已婚子女已成年</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'family', 'empty_nest')">
+                        <input type="radio" name="family" value="empty_nest">
+                        <span>空巢期（子女獨立）</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q6: 每月保費預算 -->
+            <div class="question" data-q="6">
+                <span class="question-number">問題 6 / 15</span>
+                <h3>您每月願意支出多少保費？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'budget', 'below_3000')">
+                        <input type="radio" name="budget" value="below_3000">
+                        <span>3,000元以下</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'budget', '3000_5000')">
+                        <input type="radio" name="budget" value="3000_5000">
+                        <span>3,000-5,000元</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'budget', '5000_10000')">
+                        <input type="radio" name="budget" value="5000_10000">
+                        <span>5,000-10,000元</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'budget', '10000_20000')">
+                        <input type="radio" name="budget" value="10000_20000">
+                        <span>10,000-20,000元</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'budget', 'above_20000')">
+                        <input type="radio" name="budget" value="above_20000">
+                        <span>20,000元以上</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q7: 既有保單 -->
+            <div class="question" data-q="7">
+                <span class="question-number">問題 7 / 15</span>
+                <h3>您目前已有哪些保險？（可複選）</h3>
+                <div class="checkbox-group" id="existingInsurance">
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="life" name="existing">
+                        <span>壽險</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="medical" name="existing">
+                        <span>醫療險</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="accident" name="existing">
+                        <span>意外險</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="cancer" name="existing">
+                        <span>癌症險</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="saving" name="existing">
+                        <span>儲蓄險/還本型保單</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="none" name="existing">
+                        <span>目前沒有保單</span>
+                    </div>
+                </div>
+                <div class="buttons" style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="confirmCheckbox('existingInsurance', 8)">確認選擇</button>
+                </div>
+            </div>
+
+            <!-- Q8: 規劃目標 -->
+            <div class="question" data-q="8">
+                <span class="question-number">問題 8 / 15</span>
+                <h3>您目前的規劃目標？（可複選）</h3>
+                <div class="checkbox-group" id="planningGoals">
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="protection" name="goals">
+                        <span>基本保障（醫療/意外/壽險）</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="saving" name="goals">
+                        <span>儲蓄理財</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="retirement" name="goals">
+                        <span>退休規劃</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="inheritance" name="goals">
+                        <span>遺產傳承</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="tax_saving" name="goals">
+                        <span>節稅規劃</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="debt_isolation" name="goals">
+                        <span>債務隔離/資產保護</span>
+                    </div>
+                </div>
+                <div class="buttons" style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="confirmCheckbox('planningGoals', 9)">確認選擇</button>
+                </div>
+            </div>
+
+            <!-- Q9: 資產狀況 -->
+            <div class="question" data-q="9">
+                <span class="question-number">問題 9 / 15</span>
+                <h3>您目前的資產規模（不含自住房）？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'asset', 'below_500')">
+                        <input type="radio" name="asset" value="below_500">
+                        <span>500萬以下</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'asset', '500_1000')">
+                        <input type="radio" name="asset" value="500_1000">
+                        <span>500萬-1000萬</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'asset', '1000_3000')">
+                        <input type="radio" name="asset" value="1000_3000">
+                        <span>1000萬-3000萬</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'asset', '3000_10000')">
+                        <input type="radio" name="asset" value="3000_10000">
+                        <span>3000萬-1億</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'asset', 'above_10000')">
+                        <input type="radio" name="asset" value="above_10000">
+                        <span>1億以上</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q10: 節稅需求 -->
+            <div class="question" data-q="10">
+                <span class="question-number">問題 10 / 15</span>
+                <h3>您是否有節稅規劃需求？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'tax_need', 'yes_urgent')">
+                        <input type="radio" name="tax_need" value="yes_urgent">
+                        <span>是，這是我的優先需求</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'tax_need', 'yes_consider')">
+                        <input type="radio" name="tax_need" value="yes_consider">
+                        <span>是，可以考慮</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'tax_need', 'no')">
+                        <input type="radio" name="tax_need" value="no">
+                        <span>暫時沒有這個需求</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'tax_need', 'unsure')">
+                        <input type="radio" name="tax_need" value="unsure">
+                        <span>不了解，需要諮詢</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q11: 傳承規劃 -->
+            <div class="question" data-q="11">
+                <span class="question-number">問題 11 / 15</span>
+                <h3>您是否考慮資產傳承給下一代？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'inheritance', 'yes_plan')">
+                        <input type="radio" name="inheritance" value="yes_plan">
+                        <span>是，已有規劃想法</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'inheritance', 'yes_consider')">
+                        <input type="radio" name="inheritance" value="yes_consider">
+                        <span>是，但還沒開始規劃</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'inheritance', 'maybe')">
+                        <input type="radio" name="inheritance" value="maybe">
+                        <span>可能會考慮</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'inheritance', 'no')">
+                        <input type="radio" name="inheritance" value="no">
+                        <span>暫時沒有這個打算</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q12: 債務風險 -->
+            <div class="question" data-q="12">
+                <span class="question-number">問題 12 / 15</span>
+                <h3>您是否擔心債務問題影響家族資產？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'debt_risk', 'yes_business')">
+                        <input type="radio" name="debt_risk" value="yes_business">
+                        <span>是，我是企業主/有投資</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'debt_risk', 'yes_professional')">
+                        <input type="radio" name="debt_risk" value="yes_professional">
+                        <span>是，我是專業人士（醫師/律師等）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'debt_risk', 'maybe')">
+                        <input type="radio" name="debt_risk" value="maybe">
+                        <span>有一點擔心</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'debt_risk', 'no')">
+                        <input type="radio" name="debt_risk" value="no">
+                        <span>沒有這個困擾</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q13: 投資偏好 -->
+            <div class="question" data-q="13">
+                <span class="question-number">問題 13 / 15</span>
+                <h3>您的投資風險偏好？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'risk', 'conservative')">
+                        <input type="radio" name="risk" value="conservative">
+                        <span>保守型（本金安全優先）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'risk', 'moderate')">
+                        <input type="radio" name="risk" value="moderate">
+                        <span>穩健型（可接受小幅波動）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'risk', 'aggressive')">
+                        <input type="radio" name="risk" value="aggressive">
+                        <span>積極型（追求較高報酬）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'risk', 'unsure')">
+                        <input type="radio" name="risk" value="unsure">
+                        <span>不確定，需要專業建議</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q14: 外幣需求 -->
+            <div class="question" data-q="14">
+                <span class="question-number">問題 14 / 15</span>
+                <h3>您是否有外幣配置需求？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'foreign_currency', 'yes_usd')">
+                        <input type="radio" name="foreign_currency" value="yes_usd">
+                        <span>有，主要考慮美元</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'foreign_currency', 'yes_aud')">
+                        <input type="radio" name="foreign_currency" value="yes_aud">
+                        <span>有，考慮澳幣/其他貨幣</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'foreign_currency', 'maybe')">
+                        <input type="radio" name="foreign_currency" value="maybe">
+                        <span>考慮中，想了解</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'foreign_currency', 'no')">
+                        <input type="radio" name="foreign_currency" value="no">
+                        <span>暫時不需要</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q15: 聯絡資訊 -->
+            <div class="question" data-q="15">
+                <span class="question-number">最後一題 15 / 15</span>
+                <h3>請留下您的聯絡資訊</h3>
+                <div class="input-group">
+                    <label>姓名</label>
+                    <input type="text" id="name" placeholder="請輸入您的姓名">
+                </div>
+                <div class="input-group">
+                    <label>電話</label>
+                    <input type="tel" id="phone" placeholder="請輸入聯絡電話">
+                </div>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="email" placeholder="請輸入Email">
+                </div>
+                <div class="input-group">
+                    <label>方便聯絡時間</label>
+                    <select id="contact_time">
+                        <option value="">請選擇</option>
+                        <option value="morning">上午 9:00-12:00</option>
+                        <option value="afternoon">下午 13:00-17:00</option>
+                        <option value="evening">晚上 18:00-21:00</option>
+                        <option value="anytime">任何時間都可以</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">上一題</button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">下一題</button>
+            </div>
+        </div>
+
+        <!-- 結果頁 -->
+        <div id="result" class="result-section">
+            <div class="header">
+                <h1>🎉 專屬保單推薦完成！</h1>
+                <p>根據您的需求，為您量身規劃以下方案</p>
+            </div>
+            
+            <div class="profile-summary">
+                <h4>📋 您的需求摘要</h4>
+                <div id="profileContent"></div>
+            </div>
+            
+            <div id="recommendations">
+                <!-- 推薦保單會在這裡動態生成 -->
+            </div>
+            
+            <div class="cta-section">
+                <h4>💬 想要更詳細的規劃？</h4>
+                <p>我們的專業顧問將與您聯繫，提供一對一諮詢服務</p>
+                <a href="#" class="cta-button" onclick="submitToGoogleForm()">確認送出諮詢</a>
+            </div>
+        </div>
+
+        <div class="submit-section" id="submitSection" style="display: none;">
+            <p>✅ 資料已提交，專業顧問將盡快與您聯繫！</p>
+            <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                表單編號：<span id="formId"></span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // 儲存使用者回答
+        const answers = {};
+        let currentQuestion = 1;
+        const totalQuestions = 15;
+
+        // 更新進度條
+        function updateProgress() {
+            const progress = (currentQuestion / totalQuestions) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        // 選擇單選選項
+        function selectOption(element, key, value) {
+            // 移除同組其他選項的選中狀態
+            const parent = element.parentElement;
+            parent.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            // 選中當前選項
+            element.classList.add('selected');
+            // 儲存答案
+            answers[key] = value;
+            
+            // 自動下一題（除了最後一題）
+            if (currentQuestion < totalQuestions) {
+                setTimeout(() => nextQuestion(), 300);
+            }
+        }
+
+        // 切換複選框
+        function toggleCheckbox(element) {
+            const checkbox = element.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            element.style.background = checkbox.checked ? '#f0f7ff' : '';
+            element.style.borderColor = checkbox.checked ? '#4a90d9' : '#e0e0e0';
+        }
+
+        // 確認複選框選擇
+        function confirmCheckbox(groupId, nextQ) {
+            const checkboxes = document.querySelectorAll(`#${groupId} input[type="checkbox"]:checked`);
+            if (checkboxes.length === 0) {
+                alert('請至少選擇一個選項');
+                return;
+            }
+            
+            const values = Array.from(checkboxes).map(cb => cb.value);
+            const key = groupId === 'existingInsurance' ? 'existing_insurance' : 'planning_goals';
+            answers[key] = values;
+            
+            goToQuestion(nextQ);
+        }
+
+        // 下一題
+        function nextQuestion() {
+            // 檢查最後一題是否有填寫
+            if (currentQuestion === totalQuestions) {
+                const name = document.getElementById('name').value;
+                const phone = document.getElementById('phone').value;
+                if (!name || !phone) {
+                    alert('請填寫姓名和電話');
+                    return;
+                }
+                answers.name = name;
+                answers.phone = phone;
+                answers.email = document.getElementById('email').value;
+                answers.contact_time = document.getElementById('contact_time').value;
+                
+                showResult();
+                return;
+            }
+            
+            if (currentQuestion < totalQuestions) {
+                goToQuestion(currentQuestion + 1);
+            }
+        }
+
+        // 上一題
+        function prevQuestion() {
+            if (currentQuestion > 1) {
+                goToQuestion(currentQuestion - 1);
+            }
+        }
+
+        // 跳轉到指定題目
+        function goToQuestion(q) {
+            document.querySelectorAll('.question').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector(`.question[data-q="${q}"]`).classList.add('active');
+            currentQuestion = q;
+            updateProgress();
+            
+            // 更新按鈕文字
+            const nextBtn = document.getElementById('nextBtn');
+            if (q === totalQuestions) {
+                nextBtn.textContent = '查看推薦方案';
+            } else {
+                nextBtn.textContent = '下一題';
+            }
+            
+            // 隱藏/顯示上一題按鈕
+            document.getElementById('prevBtn').style.display = q === 1 ? 'none' : 'block';
+        }
+
+        // 顯示結果
+        function showResult() {
+            document.getElementById('questionnaire').style.display = 'none';
+            document.getElementById('result').classList.add('active');
+            
+            // 生成個人摘要
+            generateProfileSummary();
+            
+            // 生成保單推薦
+            generateRecommendations();
+        }
+
+        // 生成個人摘要
+        function generateProfileSummary() {
+            const ageMap = {
+                '0-18': '0-18歲', '19-30': '19-30歲', '31-50': '31-50歲',
+                '51-65': '51-65歲', '66+': '66歲以上'
+            };
+            const genderMap = { 'male': '男性', 'female': '女性' };
+            const jobMap = {
+                'employee': '一般上班族', 'business_owner': '企業主/自營商',
+                'professional': '專業人士', 'sales': '業務/外勤', 'retired': '已退休'
+            };
+            const incomeMap = {
+                'below_50': '50萬以下', '50_100': '50萬-100萬',
+                '100_200': '100萬-200萬', '200_500': '200萬-500萬', 'above_500': '500萬以上'
+            };
+            const assetMap = {
+                'below_500': '500萬以下', '500_1000': '500萬-1000萬',
+                '1000_3000': '1000萬-3000萬', '3000_10000': '3000萬-1億', 'above_10000': '1億以上'
+            };
+            
+            const html = `
+                <div class="profile-item"><span>年齡</span><span>${ageMap[answers.age] || '-'}</span></div>
+                <div class="profile-item"><span>性別</span><span>${genderMap[answers.gender] || '-'}</span></div>
+                <div class="profile-item"><span>職業</span><span>${jobMap[answers.job] || '-'}</span></div>
+                <div class="profile-item"><span>年收入</span><span>${incomeMap[answers.income] || '-'}</span></div>
+                <div class="profile-item"><span>資產規模</span><span>${assetMap[answers.asset] || '-'}</span></div>
+            `;
+            document.getElementById('profileContent').innerHTML = html;
+        }
+
+        // 生成保單推薦
+        function generateRecommendations() {
+            const recommendations = [];
+            
+            // 根據年齡推薦
+            if (answers.age === '0-18') {
+                recommendations.push({
+                    priority: 'high',
+                    title: '基礎保障組合',
+                    products: ['金來寶小額終身壽險', '平安系列意外險', '安心醫療系列附約'],
+                    reason: '建立終身醫療基礎，早投保享低費率',
+                    features: ['保費低廉', '終身保障', '醫療附約彈性']
+                });
+            } else if (answers.age === '19-30') {
+                if (answers.income === 'below_50' || answers.budget === 'below_3000') {
+                    recommendations.push({
+                        priority: 'high',
+                        title: '入門高保障方案',
+                        products: ['安心好漾定期保險', '平安系列意外險'],
+                        reason: '年輕時以低保費建立高保障',
+                        features: ['保費便宜', '高保障額度', '可轉換終身險']
+                    });
+                } else {
+                    recommendations.push({
+                        priority: 'medium',
+                        title: '青年理財儲蓄方案',
+                        products: ['珍吉利利率變動型增額終身壽險', '新平準終身壽險'],
+                        reason: '兼顧保障與資產累積',
+                        features: ['保障遞增', '保單價值累積', '利率變動分享']
+                    });
+                }
+                
+                if (answers.foreign_currency === 'yes_usd' || answers.foreign_currency === 'yes_aud') {
+                    recommendations.push({
+                        priority: 'medium',
+                        title: '外幣配置方案',
+                        products: ['加美利外幣利率變動型增額終身壽險'],
+                        reason: '美元/澳幣資產配置，匯率避險+節稅',
+                        features: ['外幣計價', '資產分散', '節稅傳承']
+                    });
+                }
+            } else if (answers.age === '31-50') {
+                // 家庭支柱期
+                recommendations.push({
+                    priority: 'high',
+                    title: '家庭支柱保障方案',
+                    products: ['新富享人生還本終身保險', '金享福保本終身健康保險'],
+                    reason: '家庭主要收入者必備保障',
+                    features: ['保費返還', '重大疾病保障', '保單質借功能']
+                });
+                
+                if (answers.income === '200_500' || answers.income === 'above_500') {
+                    recommendations.push({
+                        priority: 'medium',
+                        title: '資產增值方案',
+                        products: ['月月吉利利率變動型還本終身保險', '吉鑽利利率變動型還本終身保險'],
+                        reason: '穩定現金流+資產增值',
+                        features: ['每月生存金', '宣告利率分享', '保單質借']
+                    });
+                }
+            } else if (answers.age === '51-65') {
+                recommendations.push({
+                    priority: 'high',
+                    title: '退休準備方案',
+                    products: ['金萬利終身保險', '金鑽豐利利率變動型還本終身保險'],
+                    reason: '準備退休收入與長照規劃',
+                    features: ['滿期金給付', '長照銜接', '年金轉換']
+                });
+            } else {
+                recommendations.push({
+                    priority: 'high',
+                    title: '長照與傳承方案',
+                    products: ['長照險系列', '年金險系列'],
+                    reason: '退休期醫療保障與資產傳承',
+                    features: ['長期照護給付', '穩定年金收入', '資產傳承']
+                });
+            }
+            
+            // 高資產/節稅需求
+            if (answers.income === 'above_500' || answers.asset === '3000_10000' || answers.asset === 'above_10000') {
+                if (answers.tax_need === 'yes_urgent' || answers.tax_need === 'yes_consider') {
+                    recommendations.unshift({
+                        priority: 'high',
+                        title: '⭐ 高資產節稅傳承方案（優先）',
+                        products: ['新吉好利利率變動型增額終身壽險', '珍吉利利率變動型增額終身壽險'],
+                        reason: '將應稅資產轉為保險資產，保險給付免計入遺產',
+                        features: ['節稅效益顯著', '保額逐年遞增', '指定受益人傳承']
+                    });
+                }
+                
+                if (answers.debt_risk === 'yes_business' || answers.debt_risk === 'yes_professional') {
+                    recommendations.push({
+                        priority: 'high',
+                        title: '資產保護/債務隔離方案',
+                        products: ['金好運萬能終身壽險(V1)', '吉鑽利利率變動型還本終身壽險'],
+                        reason: '保險金原則上不得扣押，保護家族資產',
+                        features: ['債權隔離', '保單價值累積', '質借靈活運用']
+                    });
+                }
+                
+                if (answers.inheritance === 'yes_plan' || answers.inheritance === 'yes_consider') {
+                    recommendations.push({
+                        priority: 'medium',
+                        title: '多世代傳承方案',
+                        products: ['金來寶小額終身壽險', '新富享人生還本終身保險'],
+                        reason: '直接指定受益人，跨代傳承節稅',
+                        features: ['跨代給付', '避免繼承程序', '結合家族信託']
+                    });
+                }
+            }
+            
+            // 外幣需求
+            if ((answers.foreign_currency === 'yes_usd' || answers.foreign_currency === 'yes_aud') && !recommendations.some(r => r.products.includes('加美利外幣利率變動型增額終身壽險'))) {
+                recommendations.push({
+                    priority: 'low',
+                    title: '外幣資產配置方案',
+                    products: ['加美利外幣利率變動型增額終身壽險'],
+                    reason: '美元/澳幣資產配置，匯率避險+節稅',
+                    features: ['外幣計價', '資產分散', '節稅傳承']
+                });
+            }
+            
+            // 渲染推薦
+            const container = document.getElementById('recommendations');
+            container.innerHTML = recommendations.map((rec, index) => `
+                <div class="recommendation-card priority-${rec.priority}">
+                    <span class="badge">${index + 1}</span>
+                    <h4>${rec.title}</h4>
+                    <p><strong>適合原因：</strong>${rec.reason}</p>
+                    <p style="margin-top: 10px;"><strong>推薦保單：</strong>${rec.products.join('、')}</p>
+                    <ul>
+                        ${rec.features.map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+        }
+
+        // 提交到 Google 表單
+        function submitToGoogleForm() {
+            // Google 表單設定
+            // 注意：這裡需要填入你的 Google Form 網址
+            const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/你的表單ID/formResponse';
+            
+            // 建立隱藏的表單並提交
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = GOOGLE_FORM_URL;
+            form.target = '_blank';
+            
+            // 這裡的 entry.xxxxx 需要對應你的 Google Form 欄位 ID
+            // 請參考 README 設定說明
+            const fields = {
+                'entry.1000000': answers.name,  // 姓名
+                'entry.1000001': answers.phone,  // 電話
+                'entry.1000002': answers.email,  // Email
+                'entry.1000003': answers.age,  // 年齡
+                'entry.1000004': answers.gender,  // 性別
+                'entry.1000005': answers.job,  // 職業
+                'entry.1000006': answers.income,  // 年收入
+                'entry.1000007': answers.asset,  // 資產
+                'entry.1000008': JSON.stringify(answers.planning_goals || []),  // 規劃目標
+                'entry.1000009': answers.contact_time,  // 聯絡時間
+            };
+            
+            for (const [key, value] of Object.entries(fields)) {
+                if (value) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = value;
+                    form.appendChild(input);
+                }
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+            
+            // 顯示成功訊息
+            document.querySelector('.cta-section').style.display = 'none';
+            document.getElementById('submitSection').style.display = 'block';
+            document.getElementById('formId').textContent = 'FB' + Date.now().toString(36).toUpperCase();
+        }
+
+        // 初始化
+        updateProgress();
+        document.getElementById('prevBtn').style.display = 'none';
+    </script>
+</body>
+</html>
