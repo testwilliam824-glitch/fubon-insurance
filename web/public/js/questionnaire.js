@@ -4,7 +4,7 @@
   const lid = params.get('lid');
   if (lid) answers.lid = lid;
   let currentQuestion = 1;
-  const totalQuestions = 15;
+  const totalQuestions = 14;
 
   const LABELS = {
     age: {
@@ -89,17 +89,18 @@
       answers[qEl.dataset.key] = vals;
       return true;
     }
-    if (type === 'contact') {
-      const name = $('#name').value.trim();
-      const phone = $('#phone').value.trim();
-      if (!name || !phone) { alert('請填寫姓名和電話'); return false; }
-      answers.name = name;
-      answers.phone = phone;
-      answers.line_id = $('#line_id').value.trim();
-      answers.email = $('#email').value.trim();
-      answers.contact_time = $('#contact_time').value;
-      return true;
-    }
+    return true;
+  }
+
+  function collectContact() {
+    const name = $('#name').value.trim();
+    const phone = $('#phone').value.trim();
+    if (!name || !phone) { alert('請填寫姓名和電話'); return false; }
+    answers.name = name;
+    answers.phone = phone;
+    answers.line_id = $('#line_id').value.trim();
+    answers.email = $('#email').value.trim();
+    answers.contact_time = $('#contact_time').value;
     return true;
   }
 
@@ -220,8 +221,9 @@
 
   async function submitForm(e) {
     e.preventDefault();
+    if (!collectContact()) return;
     const btn = e.currentTarget;
-    btn.style.pointerEvents = 'none';
+    btn.disabled = true;
     btn.textContent = '送出中...';
     try {
       const res = await fetch('/api/submissions', {
@@ -231,13 +233,13 @@
       });
       if (!res.ok) throw new Error('提交失敗');
       const data = await res.json();
-      document.querySelector('.cta-section').style.display = 'none';
+      $('#contactSection').style.display = 'none';
       $('#submitSection').classList.add('active');
       $('#formId').textContent = 'FB' + String(data.id).padStart(6, '0');
     } catch (err) {
       alert('提交失敗：' + err.message);
-      btn.style.pointerEvents = '';
-      btn.textContent = '確認送出諮詢';
+      btn.disabled = false;
+      btn.textContent = '✅ 送出諮詢需求';
     }
   }
 
