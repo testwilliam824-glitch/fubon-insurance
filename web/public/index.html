@@ -6,6 +6,7 @@
   <title>富邦保單智能推薦系統</title>
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/questionnaire.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
 </head>
 <body>
   <div class="container">
@@ -212,7 +213,21 @@
         <h4>📋 您的需求摘要</h4>
         <div id="profileContent"></div>
       </div>
+
+      <div class="allocation-section">
+        <h4>💰 建議預算配置</h4>
+        <p class="allocation-budget" id="allocationBudget"></p>
+        <div class="allocation-chart-wrap">
+          <canvas id="allocationChart"></canvas>
+        </div>
+        <div class="allocation-table" id="allocationTable"></div>
+      </div>
+
+      <h4 class="section-title">🎯 推薦保單組合</h4>
       <div id="recommendations"></div>
+
+      <div class="disclaimer" id="disclaimer"></div>
+
       <div class="cta-section">
         <h4>💬 想要更詳細的規劃？</h4>
         <p>我們的專業顧問將與您聯繫，提供一對一諮詢服務</p>

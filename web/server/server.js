@@ -36,7 +36,7 @@ const asyncHandler = (fn) => (req, res, next) =>
 
 // ---- 公開 API ----
 app.post('/api/recommendations', (req, res) => {
-  res.json({ recommendations: generateRecommendations(req.body || {}) });
+  res.json(generateRecommendations(req.body || {}));
 });
 
 app.post('/api/submissions', asyncHandler(async (req, res) => {
@@ -48,15 +48,17 @@ app.post('/api/submissions', asyncHandler(async (req, res) => {
   let lineUserId = null;
   if (body.lid) lineUserId = line.verifySignedUserId(body.lid);
 
-  const recommendations = generateRecommendations(body);
+  const result = generateRecommendations(body);
   const { lid, ...clean } = body;
   const customer = await db.createCustomer({
     ...clean,
     line_user_id: lineUserId,
-    recommendations,
+    recommendations: result.recommendations,
+    allocation: result.allocation,
+    budget: result.budget,
   });
 
-  const topRec = recommendations[0]?.title || '無';
+  const topRec = result.recommendations[0]?.title || '無';
   line.pushAdmin({
     type: 'text',
     text: `🔔 新客戶諮詢\n\n姓名：${customer.name}\n電話：${customer.phone}\n年齡：${customer.age || '-'}\n年收入：${customer.income || '-'}\n推薦：${topRec}\n編號：FB${String(customer.id).padStart(6, '0')}`,

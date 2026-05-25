@@ -130,25 +130,81 @@
     ].join('');
   }
 
+  let allocationChart = null;
+
   async function renderRecommendations() {
-    let recs = [];
+    let data = { recommendations: [], allocation: [], budget: null, disclaimer: '' };
     try {
       const res = await fetch('/api/recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(answers),
       });
-      const data = await res.json();
-      recs = data.recommendations || [];
+      data = await res.json();
     } catch (e) {
       console.error('取得推薦失敗', e);
     }
 
+    renderAllocation(data.allocation || [], data.budget);
+    renderRecommendationCards(data.recommendations || []);
+    $('#disclaimer').textContent = data.disclaimer || '';
+  }
+
+  function renderAllocation(allocation, budget) {
+    if (!allocation.length) return;
+
+    if (budget) {
+      $('#allocationBudget').innerHTML =
+        `依您選擇的月繳預算 <strong>${budget.label}</strong>，建議配置如下（總額約 NT$${budget.total_estimate.toLocaleString()} / 月）：`;
+    }
+
+    const tableHtml = allocation.map((a) => `
+      <div class="allocation-row">
+        <span class="dot" style="background:${a.color}"></span>
+        <span>${a.label}</span>
+        <span class="pct">${a.percent}%</span>
+        <span class="money">$${a.monthly.toLocaleString()}</span>
+      </div>
+    `).join('');
+    $('#allocationTable').innerHTML = tableHtml;
+
+    if (typeof Chart === 'undefined') return;
+    const canvas = document.getElementById('allocationChart');
+    if (allocationChart) allocationChart.destroy();
+    allocationChart = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: allocation.map((a) => `${a.label} ${a.percent}%`),
+        datasets: [{
+          data: allocation.map((a) => a.percent),
+          backgroundColor: allocation.map((a) => a.color),
+          borderWidth: 2,
+          borderColor: '#fff',
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 8 } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const a = allocation[ctx.dataIndex];
+                return `${a.label}: ${a.percent}% (約 $${a.monthly.toLocaleString()})`;
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  function renderRecommendationCards(recs) {
     if (recs.length === 0) {
       $('#recommendations').innerHTML = '<p style="padding:20px;color:#666;">暫無推薦結果，請聯絡我們的顧問。</p>';
       return;
     }
-
     $('#recommendations').innerHTML = recs.map((rec, i) => `
       <div class="recommendation-card priority-${rec.priority}">
         <span class="badge">${i + 1}</span>
@@ -156,6 +212,7 @@
         <p><strong>適合原因：</strong>${rec.reason}</p>
         <p style="margin-top:10px;"><strong>推薦保單：</strong>${rec.products.join('、')}</p>
         <ul>${rec.features.map((f) => `<li>${f}</li>`).join('')}</ul>
+        ${rec.est_premium ? `<div class="est-premium">💵 預估保費：${rec.est_premium}</div>` : ''}
       </div>
     `).join('');
   }
