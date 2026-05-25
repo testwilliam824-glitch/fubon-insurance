@@ -247,6 +247,60 @@ body {
 .priority-medium { border-left-color: var(--warning); background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
 .priority-low { border-left-color: var(--success); background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); }
 
+.contact-section {
+  margin: 25px 30px;
+  padding: 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%);
+  border: 2px solid var(--accent);
+  border-radius: 16px;
+}
+
+.contact-section h4 {
+  color: var(--primary);
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.contact-intro {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+
+.contact-intro .muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.req {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: normal;
+}
+
+.contact-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.contact-actions .btn { flex: 1; min-width: 140px; }
+
+.skip-thanks {
+  display: none;
+  margin: 25px 30px;
+  padding: 30px;
+  text-align: center;
+  background: #f8fafc;
+  border-radius: 16px;
+}
+
+.skip-thanks.active { display: block; }
+.skip-thanks h4 { color: var(--primary); margin-bottom: 10px; font-size: 20px; }
+.skip-thanks p { color: var(--muted); }
+
 .cta-section {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   color: white;

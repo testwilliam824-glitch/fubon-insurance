@@ -210,6 +210,7 @@
         ${item('姓名', c.name)}
         ${item('電話', c.phone)}
         ${item('Email', c.email)}
+        ${item('LINE ID', c.line_id)}
         ${item('年齡', LABELS.age[c.age])}
         ${item('性別', LABELS.gender[c.gender])}
         ${item('職業', LABELS.job[c.job])}
@@ -291,7 +292,7 @@
 
   function exportCSV() {
     const filtered = getFiltered();
-    const headers = ['時間', '姓名', '電話', 'Email', '年齡', '性別', '職業', '年收入', '資產', '家庭', '規劃目標', '既有保單', '推薦保單', '狀態'];
+    const headers = ['時間', '姓名', '電話', 'Email', '年齡', '性別', '職業', '年收入', '資產', '家庭', '規劃目標', '既有保單', '推薦保單', 'LINE ID', '狀態'];
     const rows = filtered.map((c) => [
       new Date(c.timestamp).toLocaleString('zh-TW', { hour12: false }),
       c.name, c.phone, c.email || '',
@@ -301,6 +302,7 @@
       (c.planning_goals || []).map((g) => LABELS.goals[g] || g).join(';'),
       (c.existing_insurance || []).map((e) => LABELS.existing[e] || e).join(';'),
       (c.recommendations || []).map((r) => r.title).join(';'),
+      c.line_id || '',
       LABELS.status[c.status] || c.status,
     ].map((v) => `"${String(v).replace(/"/g, '""')}"`));
     const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');

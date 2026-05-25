@@ -41,8 +41,11 @@ app.post('/api/recommendations', (req, res) => {
 
 app.post('/api/submissions', asyncHandler(async (req, res) => {
   const body = req.body || {};
-  if (!body.name || !body.phone) {
-    return res.status(400).json({ error: 'name and phone are required' });
+  if (!body.name) {
+    return res.status(400).json({ error: 'name is required' });
+  }
+  if (!body.phone && !body.line_id && !body.email) {
+    return res.status(400).json({ error: 'at least one contact method required' });
   }
 
   let lineUserId = null;
@@ -61,7 +64,7 @@ app.post('/api/submissions', asyncHandler(async (req, res) => {
   const topRec = result.recommendations[0]?.title || '無';
   line.pushAdmin({
     type: 'text',
-    text: `🔔 新客戶諮詢\n\n姓名：${customer.name}\n電話：${customer.phone}\n年齡：${customer.age || '-'}\n年收入：${customer.income || '-'}\n推薦：${topRec}\n編號：FB${String(customer.id).padStart(6, '0')}`,
+    text: `🔔 新客戶諮詢\n\n姓名：${customer.name}\n電話：${customer.phone || '-'}\nLINE ID：${customer.line_id || '-'}\nEmail：${customer.email || '-'}\n年齡：${customer.age || '-'}\n年收入：${customer.income || '-'}\n推薦：${topRec}\n編號：FB${String(customer.id).padStart(6, '0')}`,
   }).catch(() => {});
 
   if (lineUserId) {
@@ -71,7 +74,7 @@ app.post('/api/submissions', asyncHandler(async (req, res) => {
     }).catch(() => {});
   }
 
-  res.status(201).json({ id: customer.id, recommendations });
+  res.status(201).json({ id: customer.id, recommendations: result.recommendations });
 }));
 
 // ---- LINE Webhook ----
