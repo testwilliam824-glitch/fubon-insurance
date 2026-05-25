@@ -114,3 +114,4 @@ PORT=8080 ADMIN_PASS=mySecret npm start
 - **Render / Railway / Fly.io**：直接部署 Node 服務即可
 - **資料庫升級**：將 `db.js` 替換為 PostgreSQL/SQLite 即可，介面不變
 - **Production 安全**：請務必修改 `ADMIN_PASS`，並考慮加上 HTTPS、Rate limit
+
