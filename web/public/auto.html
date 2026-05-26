@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="insurance-type" content="auto">
+  <title>富邦車險智能推薦</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/questionnaire.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚗 富邦車險智能推薦</h1>
+      <p>強制險、車體險、第三人責任、電動車專屬保障</p>
+      <p style="margin-top:8px;"><a href="/" style="color:rgba(255,255,255,0.8);font-size:13px;">← 返回選擇其他保險</a></p>
+    </div>
+
+    <div class="progress-bar"><div class="progress-fill" id="progressBar"></div></div>
+
+    <div id="questionnaire" class="content">
+      <div class="question active" data-q="1" data-type="single" data-key="vehicle_type">
+        <span class="question-number">問題 1 / 9</span>
+        <h3>您的車輛類型是？</h3>
+        <div class="options">
+          <div class="option" data-value="gasoline"><input type="radio" name="vehicle_type"><span>⛽ 汽油 / 柴油車</span></div>
+          <div class="option" data-value="hybrid"><input type="radio" name="vehicle_type"><span>🔋 油電混合車 (Hybrid)</span></div>
+          <div class="option" data-value="electric"><input type="radio" name="vehicle_type"><span>⚡ 電動車 (EV)</span></div>
+          <div class="option" data-value="motorcycle"><input type="radio" name="vehicle_type"><span>🏍️ 機車</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="2" data-type="single" data-key="vehicle_age">
+        <span class="question-number">問題 2 / 9</span>
+        <h3>您的車齡是？</h3>
+        <div class="options">
+          <div class="option" data-value="new"><input type="radio" name="vehicle_age"><span>新車（0-1 年）</span></div>
+          <div class="option" data-value="nearly_new"><input type="radio" name="vehicle_age"><span>近新車（1-3 年）</span></div>
+          <div class="option" data-value="mid"><input type="radio" name="vehicle_age"><span>中齡車（3-7 年）</span></div>
+          <div class="option" data-value="old"><input type="radio" name="vehicle_age"><span>老車（7 年以上）</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="3" data-type="single" data-key="vehicle_value">
+        <span class="question-number">問題 3 / 9</span>
+        <h3>您的車輛市價約多少？</h3>
+        <div class="options">
+          <div class="option" data-value="under_50"><input type="radio" name="vehicle_value"><span>50 萬以下</span></div>
+          <div class="option" data-value="50_100"><input type="radio" name="vehicle_value"><span>50-100 萬</span></div>
+          <div class="option" data-value="100_200"><input type="radio" name="vehicle_value"><span>100-200 萬</span></div>
+          <div class="option" data-value="over_200"><input type="radio" name="vehicle_value"><span>200 萬以上（豪華車）</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="4" data-type="single" data-key="usage">
+        <span class="question-number">問題 4 / 9</span>
+        <h3>您平常的用車頻率？</h3>
+        <div class="options">
+          <div class="option" data-value="commute"><input type="radio" name="usage"><span>每日通勤</span></div>
+          <div class="option" data-value="regular"><input type="radio" name="usage"><span>週末 / 假日為主</span></div>
+          <div class="option" data-value="occasional"><input type="radio" name="usage"><span>偶爾使用</span></div>
+          <div class="option" data-value="commercial"><input type="radio" name="usage"><span>商用 / 載客</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="5" data-type="single" data-key="driving">
+        <span class="question-number">問題 5 / 9</span>
+        <h3>您的駕駛經驗？</h3>
+        <div class="options">
+          <div class="option" data-value="newbie"><input type="radio" name="driving"><span>新手（3 年以下）</span></div>
+          <div class="option" data-value="experienced"><input type="radio" name="driving"><span>經驗豐富</span></div>
+          <div class="option" data-value="senior"><input type="radio" name="driving"><span>銀髮駕駛（65+）</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="6" data-type="multi" data-key="coverage">
+        <span class="question-number">問題 6 / 9</span>
+        <h3>您最注重的保障？（可複選）</h3>
+        <div class="checkbox-group">
+          <div class="checkbox-item" data-value="theft"><input type="checkbox"><span>🔓 失竊險</span></div>
+          <div class="checkbox-item" data-value="damage"><input type="checkbox"><span>💥 車體損失</span></div>
+          <div class="checkbox-item" data-value="third_party"><input type="checkbox"><span>👥 第三人責任</span></div>
+          <div class="checkbox-item" data-value="driver_injury"><input type="checkbox"><span>🤕 駕駛人傷害</span></div>
+          <div class="checkbox-item" data-value="roadside"><input type="checkbox"><span>🛠️ 道路救援</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="7" data-type="multi" data-key="special">
+        <span class="question-number">問題 7 / 9</span>
+        <h3>有沒有特殊需求？（可複選）</h3>
+        <div class="checkbox-group">
+          <div class="checkbox-item" data-value="ev_battery"><input type="checkbox"><span>🔋 電池 / 馬達專屬</span></div>
+          <div class="checkbox-item" data-value="ev_charging"><input type="checkbox"><span>⚡ 充電設備險</span></div>
+          <div class="checkbox-item" data-value="windscreen"><input type="checkbox"><span>🪟 擋風玻璃單獨理賠</span></div>
+          <div class="checkbox-item" data-value="scratch"><input type="checkbox"><span>🎨 烤漆 / 鈑金</span></div>
+          <div class="checkbox-item" data-value="replacement"><input type="checkbox"><span>🆕 新車全損置換</span></div>
+          <div class="checkbox-item" data-value="none"><input type="checkbox"><span>無特殊需求</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="8" data-type="single" data-key="budget">
+        <span class="question-number">問題 8 / 9</span>
+        <h3>您的年度車險保費預算？</h3>
+        <div class="options">
+          <div class="option" data-value="economy"><input type="radio" name="budget"><span>經濟型（10,000 元以下 / 年）</span></div>
+          <div class="option" data-value="standard"><input type="radio" name="budget"><span>標準型（10,000-30,000 元 / 年）</span></div>
+          <div class="option" data-value="premium"><input type="radio" name="budget"><span>尊榮型（30,000 元以上 / 年）</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="9" data-type="single" data-key="age">
+        <span class="question-number">問題 9 / 9</span>
+        <h3>您的年齡區間是？</h3>
+        <div class="options">
+          <div class="option" data-value="under25"><input type="radio" name="age"><span>25 歲以下</span></div>
+          <div class="option" data-value="25_40"><input type="radio" name="age"><span>25-40 歲</span></div>
+          <div class="option" data-value="40_60"><input type="radio" name="age"><span>40-60 歲</span></div>
+          <div class="option" data-value="over60"><input type="radio" name="age"><span>60 歲以上</span></div>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button class="btn btn-secondary" id="prevBtn">上一題</button>
+        <button class="btn btn-primary" id="nextBtn">下一題</button>
+      </div>
+    </div>
+
+    <div id="result" class="result-section">
+      <div class="header">
+        <h1>🎉 專屬車險推薦完成！</h1>
+        <p>根據您的車輛與駕駛需求，為您規劃以下方案</p>
+      </div>
+      <div class="profile-summary"><h4>📋 您的需求摘要</h4><div id="profileContent"></div></div>
+      <div class="allocation-section">
+        <h4>💰 建議預算配置</h4>
+        <p class="allocation-budget" id="allocationBudget"></p>
+        <div class="allocation-chart-wrap"><canvas id="allocationChart"></canvas></div>
+        <div class="allocation-table" id="allocationTable"></div>
+      </div>
+      <h4 class="section-title">🎯 推薦車險方案</h4>
+      <div id="recommendations"></div>
+      <div class="disclaimer" id="disclaimer"></div>
+      <div class="contact-section" id="contactSection">
+        <h4>💬 想要這份方案的完整規劃嗎？</h4>
+        <p class="contact-intro">
+          以上為系統初步建議。請留下聯絡資訊，由<strong>富邦產險合格保險經紀員</strong>為您客製化詳細方案。<br>
+          <span class="muted">您的資訊受嚴格保密，僅供保險諮詢使用。</span>
+        </p>
+        <div class="input-group"><label>姓名 <span class="req">*</span></label><input type="text" id="name" placeholder="請輸入您的姓名"></div>
+        <div class="input-group"><label>電話 <span class="req">*</span></label><input type="tel" id="phone" placeholder="📞 請輸入聯絡電話"></div>
+        <div class="input-group"><label>LINE ID</label><input type="text" id="line_id" placeholder="💬 您的 LINE ID（選填）"></div>
+        <div class="input-group"><label>Email</label><input type="email" id="email" placeholder="✉️ 選填"></div>
+        <div class="input-group">
+          <label>方便聯絡時間</label>
+          <select id="contact_time">
+            <option value="">請選擇</option>
+            <option value="morning">上午 9:00-12:00</option>
+            <option value="afternoon">下午 13:00-17:00</option>
+            <option value="evening">晚上 18:00-21:00</option>
+            <option value="anytime">任何時間都可以</option>
+          </select>
+        </div>
+        <button class="btn btn-primary submit-btn" id="submitBtn">✅ 送出諮詢需求</button>
+      </div>
+    </div>
+
+    <div class="submit-section" id="submitSection">
+      <p>✅ 資料已提交，專業顧問將盡快與您聯繫！</p>
+      <p style="font-size: 12px; color: #999;">表單編號：<span id="formId"></span></p>
+    </div>
+  </div>
+
+  <script src="js/questionnaire.js"></script>
+</body>
+</html>

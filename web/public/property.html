@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="insurance-type" content="property">
+  <title>富邦產險智能推薦</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/questionnaire.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏠 富邦產險智能推薦</h1>
+      <p>住宅、動產、責任、旅遊等個人產物保險規劃</p>
+      <p style="margin-top:8px;"><a href="/" style="color:rgba(255,255,255,0.8);font-size:13px;">← 返回選擇其他保險</a></p>
+    </div>
+
+    <div class="progress-bar"><div class="progress-fill" id="progressBar"></div></div>
+
+    <div id="questionnaire" class="content">
+      <div class="question active" data-q="1" data-type="multi" data-key="property_items">
+        <span class="question-number">問題 1 / 8</span>
+        <h3>您想投保哪些產險項目？（可複選）</h3>
+        <div class="checkbox-group">
+          <div class="checkbox-item" data-value="home"><input type="checkbox"><span>🏠 住宅火災 / 地震險</span></div>
+          <div class="checkbox-item" data-value="content"><input type="checkbox"><span>📺 住宅動產（家具家電）</span></div>
+          <div class="checkbox-item" data-value="liability"><input type="checkbox"><span>⚖️ 個人責任險</span></div>
+          <div class="checkbox-item" data-value="accident"><input type="checkbox"><span>🤕 個人意外傷害險</span></div>
+          <div class="checkbox-item" data-value="travel"><input type="checkbox"><span>✈️ 旅遊不便險</span></div>
+          <div class="checkbox-item" data-value="mobile"><input type="checkbox"><span>📱 行動裝置險</span></div>
+          <div class="checkbox-item" data-value="pet"><input type="checkbox"><span>🐕 寵物險</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="2" data-type="single" data-key="home_type">
+        <span class="question-number">問題 2 / 8</span>
+        <h3>您的住家類型是？</h3>
+        <div class="options">
+          <div class="option" data-value="apartment"><input type="radio" name="home_type"><span>公寓 / 大樓</span></div>
+          <div class="option" data-value="house"><input type="radio" name="home_type"><span>透天 / 別墅</span></div>
+          <div class="option" data-value="rental"><input type="radio" name="home_type"><span>租屋族</span></div>
+          <div class="option" data-value="none"><input type="radio" name="home_type"><span>暫無住家保險需求</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="3" data-type="multi" data-key="coverage">
+        <span class="question-number">問題 3 / 8</span>
+        <h3>您最注重的保障是？（可複選）</h3>
+        <div class="checkbox-group">
+          <div class="checkbox-item" data-value="theft"><input type="checkbox"><span>🔓 竊盜損失</span></div>
+          <div class="checkbox-item" data-value="fire"><input type="checkbox"><span>🔥 火災損失</span></div>
+          <div class="checkbox-item" data-value="earthquake"><input type="checkbox"><span>🏚️ 地震風險</span></div>
+          <div class="checkbox-item" data-value="third_party"><input type="checkbox"><span>⚖️ 第三人責任</span></div>
+          <div class="checkbox-item" data-value="medical"><input type="checkbox"><span>🤕 醫療費用</span></div>
+          <div class="checkbox-item" data-value="travel"><input type="checkbox"><span>✈️ 旅遊風險</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="4" data-type="single" data-key="budget">
+        <span class="question-number">問題 4 / 8</span>
+        <h3>您的年度產險保費預算？</h3>
+        <div class="options">
+          <div class="option" data-value="economy"><input type="radio" name="budget"><span>經濟型（5,000 元以下 / 年）</span></div>
+          <div class="option" data-value="standard"><input type="radio" name="budget"><span>標準型（5,000-15,000 元 / 年）</span></div>
+          <div class="option" data-value="premium"><input type="radio" name="budget"><span>尊榮型（15,000 元以上 / 年）</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="5" data-type="single" data-key="age">
+        <span class="question-number">問題 5 / 8</span>
+        <h3>您的年齡區間是？</h3>
+        <div class="options">
+          <div class="option" data-value="under25"><input type="radio" name="age"><span>25 歲以下</span></div>
+          <div class="option" data-value="25_40"><input type="radio" name="age"><span>25-40 歲</span></div>
+          <div class="option" data-value="40_60"><input type="radio" name="age"><span>40-60 歲</span></div>
+          <div class="option" data-value="over60"><input type="radio" name="age"><span>60 歲以上</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="6" data-type="single" data-key="family">
+        <span class="question-number">問題 6 / 8</span>
+        <h3>您目前的家庭狀況？</h3>
+        <div class="options">
+          <div class="option" data-value="single"><input type="radio" name="family"><span>單身</span></div>
+          <div class="option" data-value="couple"><input type="radio" name="family"><span>已婚 / 同居</span></div>
+          <div class="option" data-value="family_kids"><input type="radio" name="family"><span>有子女家庭</span></div>
+          <div class="option" data-value="senior"><input type="radio" name="family"><span>退休 / 空巢期</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="7" data-type="single" data-key="property_value">
+        <span class="question-number">問題 7 / 8</span>
+        <h3>您家中財產（家電、家具、3C）約值多少？</h3>
+        <div class="options">
+          <div class="option" data-value="under_30"><input type="radio" name="property_value"><span>30 萬以下</span></div>
+          <div class="option" data-value="30_100"><input type="radio" name="property_value"><span>30-100 萬</span></div>
+          <div class="option" data-value="100_300"><input type="radio" name="property_value"><span>100-300 萬</span></div>
+          <div class="option" data-value="over_300"><input type="radio" name="property_value"><span>300 萬以上</span></div>
+        </div>
+      </div>
+
+      <div class="question" data-q="8" data-type="multi" data-key="special_items">
+        <span class="question-number">問題 8 / 8</span>
+        <h3>有沒有需要特別保障的項目？（可複選）</h3>
+        <div class="checkbox-group">
+          <div class="checkbox-item" data-value="art"><input type="checkbox"><span>🖼️ 藝術品 / 收藏品</span></div>
+          <div class="checkbox-item" data-value="jewelry"><input type="checkbox"><span>💎 珠寶 / 名錶</span></div>
+          <div class="checkbox-item" data-value="electronics"><input type="checkbox"><span>💻 高價 3C / 攝影器材</span></div>
+          <div class="checkbox-item" data-value="frequent_travel"><input type="checkbox"><span>✈️ 經常出國</span></div>
+          <div class="checkbox-item" data-value="none"><input type="checkbox"><span>無特殊需求</span></div>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button class="btn btn-secondary" id="prevBtn">上一題</button>
+        <button class="btn btn-primary" id="nextBtn">下一題</button>
+      </div>
+    </div>
+
+    <div id="result" class="result-section">
+      <div class="header">
+        <h1>🎉 專屬產險推薦完成！</h1>
+        <p>根據您的需求，為您量身規劃以下方案</p>
+      </div>
+      <div class="profile-summary"><h4>📋 您的需求摘要</h4><div id="profileContent"></div></div>
+      <div class="allocation-section">
+        <h4>💰 建議預算配置</h4>
+        <p class="allocation-budget" id="allocationBudget"></p>
+        <div class="allocation-chart-wrap"><canvas id="allocationChart"></canvas></div>
+        <div class="allocation-table" id="allocationTable"></div>
+      </div>
+      <h4 class="section-title">🎯 推薦產險方案</h4>
+      <div id="recommendations"></div>
+      <div class="disclaimer" id="disclaimer"></div>
+      <div class="contact-section" id="contactSection">
+        <h4>💬 想要這份方案的完整規劃嗎？</h4>
+        <p class="contact-intro">
+          以上為系統初步建議。請留下聯絡資訊，由<strong>富邦產險合格保險經紀員</strong>為您客製化詳細方案。<br>
+          <span class="muted">您的資訊受嚴格保密，僅供保險諮詢使用。</span>
+        </p>
+        <div class="input-group"><label>姓名 <span class="req">*</span></label><input type="text" id="name" placeholder="請輸入您的姓名"></div>
+        <div class="input-group"><label>電話 <span class="req">*</span></label><input type="tel" id="phone" placeholder="📞 請輸入聯絡電話"></div>
+        <div class="input-group"><label>LINE ID</label><input type="text" id="line_id" placeholder="💬 您的 LINE ID（選填）"></div>
+        <div class="input-group"><label>Email</label><input type="email" id="email" placeholder="✉️ 選填"></div>
+        <div class="input-group">
+          <label>方便聯絡時間</label>
+          <select id="contact_time">
+            <option value="">請選擇</option>
+            <option value="morning">上午 9:00-12:00</option>
+            <option value="afternoon">下午 13:00-17:00</option>
+            <option value="evening">晚上 18:00-21:00</option>
+            <option value="anytime">任何時間都可以</option>
+          </select>
+        </div>
+        <button class="btn btn-primary submit-btn" id="submitBtn">✅ 送出諮詢需求</button>
+      </div>
+    </div>
+
+    <div class="submit-section" id="submitSection">
+      <p>✅ 資料已提交，專業顧問將盡快與您聯繫！</p>
+      <p style="font-size: 12px; color: #999;">表單編號：<span id="formId"></span></p>
+    </div>
+  </div>
+
+  <script src="js/questionnaire.js"></script>
+</body>
+</html>

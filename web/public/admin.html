@@ -42,6 +42,15 @@
         <div class="filter-grid">
           <div class="filter-group"><label>搜尋姓名/電話</label><input type="text" id="searchText" placeholder="輸入關鍵字..."></div>
           <div class="filter-group">
+            <label>保險類型</label>
+            <select id="filterType">
+              <option value="">全部</option>
+              <option value="life">💼 壽險</option>
+              <option value="property">🏠 產險</option>
+              <option value="auto">🚗 車險</option>
+            </select>
+          </div>
+          <div class="filter-group">
             <label>年齡區間</label>
             <select id="filterAge">
               <option value="">全部</option>
@@ -90,7 +99,7 @@
           <table>
             <thead>
               <tr>
-                <th>時間</th><th>姓名</th><th>電話</th><th>年齡</th><th>年收入</th>
+                <th>時間</th><th>類型</th><th>姓名</th><th>電話</th><th>年齡</th><th>年收入</th>
                 <th>規劃目標</th><th>推薦保單</th><th>狀態</th><th>操作</th>
               </tr>
             </thead>

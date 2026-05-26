@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>富邦產險車險智能推薦系統</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            background: linear-gradient(135deg, #004098 0%, #0066cc 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #004098 0%, #0066cc 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 24px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .progress-bar {
+            background: #e0e0e0;
+            height: 6px;
+            width: 100%;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #004098, #00a8e8);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .content {
+            padding: 30px;
+            min-height: 400px;
+        }
+        .question { display: none; }
+        .question.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .question h3 {
+            color: #004098;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .question-number {
+            color: #00a8e8;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .option {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .option:hover {
+            border-color: #00a8e8;
+            background: #f0f7ff;
+        }
+        .option.selected {
+            border-color: #004098;
+            background: #004098;
+            color: white;
+        }
+        .option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #004098;
+        }
+        .input-group {
+            margin-top: 20px;
+        }
+        .input-group label {
+            display: block;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #00a8e8;
+        }
+        .checkbox-group {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .checkbox-item:hover {
+            border-color: #00a8e8;
+        }
+        .checkbox-item input {
+            width: 20px;
+            height: 20px;
+        }
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #004098 0%, #0066cc 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,64,152,0.3);
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .result-section {
+            display: none;
+            padding: 30px;
+        }
+        .result-section.active {
+            display: block;
+        }
+        .profile-summary {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .profile-summary h4 {
+            color: #004098;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .profile-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .profile-item:last-child {
+            border-bottom: none;
+        }
+        .recommendation-card {
+            background: linear-gradient(135deg, #f0f7ff 0%, #e8f4f8 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #004098;
+        }
+        .recommendation-card h4 {
+            color: #004098;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        .recommendation-card .badge {
+            display: inline-block;
+            background: #004098;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .recommendation-card ul {
+            margin: 15px 0 0 20px;
+        }
+        .recommendation-card li {
+            margin: 8px 0;
+            color: #333;
+        }
+        .cta-section {
+            background: linear-gradient(135deg, #004098 0%, #0066cc 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            margin-top: 25px;
+        }
+        .cta-section h4 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #004098;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: all 0.2s;
+        }
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        .priority-high {
+            border-left-color: #dc2626;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        }
+        .priority-medium {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+        .priority-low {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        }
+        .submit-section {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+        }
+        .submit-section p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .vehicle-icon {
+            font-size: 48px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .ev-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 富邦產險車險智能推薦系統</h1>
+            <p>為您量身打造最適合的產險與車險規劃方案</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+        
+        <!-- 問卷區 -->
+        <div id="questionnaire" class="content">
+            
+            <!-- Q1: 險種類型 -->
+            <div class="question active" data-q="1">
+                <span class="question-number">問題 1 / 12</span>
+                <h3>您想規劃哪類保險？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'insurance_type', 'auto')">
+                        <input type="radio" name="insurance_type" value="auto">
+                        <span>🚗 汽車保險（車險）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'insurance_type', 'property')">
+                        <input type="radio" name="insurance_type" value="property">
+                        <span>🏠 產物保險（產險）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'insurance_type', 'both')">
+                        <input type="radio" name="insurance_type" value="both">
+                        <span>🔄 兩種都需要</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q2: 車險-車輛類型 -->
+            <div class="question" data-q="2">
+                <span class="question-number">問題 2 / 12</span>
+                <h3>您的車輛類型是？</h3>
+                <div class="vehicle-icon">🚗 ⚡</div>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'vehicle_type', 'gasoline')">
+                        <input type="radio" name="vehicle_type" value="gasoline">
+                        <span>⛽ 汽油車 / 柴油車（油車）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'vehicle_type', 'hybrid')">
+                        <input type="radio" name="vehicle_type" value="hybrid">
+                        <span>🔋 油電混合車（Hybrid）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'vehicle_type', 'electric')">
+                        <input type="radio" name="vehicle_type" value="electric">
+                        <span>⚡ 純電動車（EV）<span class="ev-badge">新能源</span></span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'vehicle_type', 'motorcycle')">
+                        <input type="radio" name="vehicle_type" value="motorcycle">
+                        <span>🏍️ 機車</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q3: 車險-車齡 -->
+            <div class="question" data-q="3">
+                <span class="question-number">問題 3 / 12</span>
+                <h3>您的車齡是？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'vehicle_age', 'new')">
+                        <input type="radio" name="vehicle_age" value="new">
+                        <span>🆕 新車（0-1年）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'vehicle_age', 'nearly_new')">
+                        <input type="radio" name="vehicle_age" value="nearly_new">
+                        <span>✨ 近新車（1-3年）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'vehicle_age', 'mid')">
+                        <input type="radio" name="vehicle_age" value="mid">
+                        <span>📅 中齡車（3-7年）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'vehicle_age', 'old')">
+                        <input type="radio" name="vehicle_age" value="old">
+                        <span>🔧 老車（7年以上）</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q4: 車險-使用頻率 -->
+            <div class="question" data-q="4">
+                <span class="question-number">問題 4 / 12</span>
+                <h3>您平常的用車頻率？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'usage', 'commute')">
+                        <input type="radio" name="usage" value="commute">
+                        <span>🏢 每天通勤（高頻率）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'usage', 'regular')">
+                        <input type="radio" name="usage" value="regular">
+                        <span>🛒 週末出遊/採買（中頻率）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'usage', 'occasional')">
+                        <input type="radio" name="usage" value="occasional">
+                        <span>🎯 偶爾使用（低頻率）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'usage', 'commercial')">
+                        <input type="radio" name="usage" value="commercial">
+                        <span>💼 營業用/商用車</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q5: 產險-資產類型 -->
+            <div class="question" data-q="5">
+                <span class="question-number">問題 5 / 12</span>
+                <h3>您想投保哪些產險項目？（可複選）</h3>
+                <div class="checkbox-group" id="propertyTypes">
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="home" name="property">
+                        <span>🏠 住宅火災/地震險</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="content" name="property">
+                        <span>📺 住宅動產/家具險</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="liability" name="property">
+                        <span>⚖️ 責任險（個人/家庭）</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="accident" name="property">
+                        <span>🤕 個人意外傷害險</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="travel" name="property">
+                        <span>✈️ 旅遊不便險</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="mobile" name="property">
+                        <span>📱 手機/行動裝置險</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="pet" name="property">
+                        <span>🐕 寵物險</span>
+                    </div>
+                </div>
+                <div class="buttons" style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="confirmCheckbox('propertyTypes', 6)">確認選擇</button>
+                </div>
+            </div>
+
+            <!-- Q6: 住家類型 -->
+            <div class="question" data-q="6">
+                <span class="question-number">問題 6 / 12</span>
+                <h3>您的住家類型是？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'home_type', 'apartment')">
+                        <input type="radio" name="home_type" value="apartment">
+                        <span>🏢 公寓大廈（社區住宅）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'home_type', 'house')">
+                        <input type="radio" name="home_type" value="house">
+                        <span>🏡 獨棟透天厝</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'home_type', 'rental')">
+                        <input type="radio" name="home_type" value="rental">
+                        <span>🏠 租屋（套房/雅房）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'home_type', 'none')">
+                        <input type="radio" name="home_type" value="none">
+                        <span>❌ 不需要住宅險</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q7: 保障需求 -->
+            <div class="question" data-q="7">
+                <span class="question-number">問題 7 / 12</span>
+                <h3>您最注重的保障是？（可複選）</h3>
+                <div class="checkbox-group" id="coverageNeeds">
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="theft" name="coverage">
+                        <span>🔒 竊盜/失竊保障</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="damage" name="coverage">
+                        <span>🔥 火災/水災/風災損失</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="earthquake" name="coverage">
+                        <span>💥 地震/天然災害</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="third_party" name="coverage">
+                        <span>👥 第三人責任/理賠</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="medical" name="coverage">
+                        <span>🏥 醫療/意外給付</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="roadside" name="coverage">
+                        <span>🚗 道路救援/拖吊服務</span>
+                    </div>
+                </div>
+                <div class="buttons" style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="confirmCheckbox('coverageNeeds', 8)">確認選擇</button>
+                </div>
+            </div>
+
+            <!-- Q8: 預算 -->
+            <div class="question" data-q="8">
+                <span class="question-number">問題 8 / 12</span>
+                <h3>您的年度保費預算？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'budget', 'economy')">
+                        <input type="radio" name="budget" value="economy">
+                        <span>💰 經濟型（基本保障）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'budget', 'standard')">
+                        <input type="radio" name="budget" value="standard">
+                        <span>💰💰 標準型（完整保障）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'budget', 'premium')">
+                        <input type="radio" name="budget" value="premium">
+                        <span>💰💰💰 尊榮型（全方位）</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q9: 駕駛習慣 -->
+            <div class="question" data-q="9">
+                <span class="question-number">問題 9 / 12</span>
+                <h3>您的駕駛經驗與習慣？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'driving', 'newbie')">
+                        <input type="radio" name="driving" value="newbie">
+                        <span>🆕 新手駕駛（駕齡2年內）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'driving', 'experienced')">
+                        <input type="radio" name="driving" value="experienced">
+                        <span>😎 經驗豐富（無肇事紀錄）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'driving', 'senior')">
+                        <input type="radio" name="driving" value="senior">
+                        <span>👴 銀髮駕駛（65歲以上）</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'driving', 'none')">
+                        <input type="radio" name="driving" value="none">
+                        <span>❌ 無駕照/不開車</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q10: 特殊需求 -->
+            <div class="question" data-q="10">
+                <span class="question-number">問題 10 / 12</span>
+                <h3>您有特殊保障需求嗎？（可複選）</h3>
+                <div class="checkbox-group" id="specialNeeds">
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="ev_battery" name="special">
+                        <span>🔋 電動車電池/馬達專屬保障</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="ev_charging" name="special">
+                        <span>⚡ 充電設備損失/責任險</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="windscreen" name="special">
+                        <span>🪟 擋風玻璃/車體鈑金單獨險</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="scratch" name="special">
+                        <span>🎨 車體烤漆/刮痕修復</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="replacement" name="special">
+                        <span>🆕 新車全損/置換保障</span>
+                    </div>
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" value="none" name="special">
+                        <span>❌ 無特殊需求</span>
+                    </div>
+                </div>
+                <div class="buttons" style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="confirmCheckbox('specialNeeds', 11)">確認選擇</button>
+                </div>
+            </div>
+
+            <!-- Q11: 年齡 -->
+            <div class="question" data-q="11">
+                <span class="question-number">問題 11 / 12</span>
+                <h3>您的年齡區間是？</h3>
+                <div class="options">
+                    <div class="option" onclick="selectOption(this, 'age', 'under25')">
+                        <input type="radio" name="age" value="under25">
+                        <span>🎓 25歲以下</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'age', '25_40')">
+                        <input type="radio" name="age" value="25_40">
+                        <span>💼 25-40歲</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'age', '40_60')">
+                        <input type="radio" name="age" value="40_60">
+                        <span>🏠 40-60歲</span>
+                    </div>
+                    <div class="option" onclick="selectOption(this, 'age', 'over60')">
+                        <input type="radio" name="age" value="over60">
+                        <span>👴 60歲以上</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q12: 聯絡資訊 -->
+            <div class="question" data-q="12">
+                <span class="question-number">最後一題 12 / 12</span>
+                <h3>請留下您的聯絡資訊</h3>
+                <div class="input-group">
+                    <label>姓名</label>
+                    <input type="text" id="name" placeholder="請輸入您的姓名">
+                </div>
+                <div class="input-group">
+                    <label>電話</label>
+                    <input type="tel" id="phone" placeholder="請輸入聯絡電話">
+                </div>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="email" placeholder="請輸入Email">
+                </div>
+                <div class="input-group">
+                    <label>方便聯絡時間</label>
+                    <select id="contact_time">
+                        <option value="">請選擇</option>
+                        <option value="morning">上午 9:00-12:00</option>
+                        <option value="afternoon">下午 13:00-17:00</option>
+                        <option value="evening">晚上 18:00-21:00</option>
+                        <option value="anytime">任何時間都可以</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="buttons" id="navButtons">
+                <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">上一題</button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">下一題</button>
+            </div>
+        </div>
+
+        <!-- 結果頁 -->
+        <div id="result" class="result-section">
+            <div class="header">
+                <h1>🎉 專屬保單推薦完成！</h1>
+                <p>根據您的需求，為您量身規劃以下方案</p>
+            </div>
+            
+            <div class="profile-summary">
+                <h4>📋 您的需求摘要</h4>
+                <div id="profileContent"></div>
+            </div>
+            
+            <div id="recommendations">
+                <!-- 推薦保單會在這裡動態生成 -->
+            </div>
+            
+            <div class="cta-section">
+                <h4>💬 想要更詳細的規劃？</h4>
+                <p>我們的專業顧問將與您聯繫，提供一對一諮詢服務</p>
+                <a href="#" class="cta-button" onclick="submitToGoogleForm()">確認送出諮詢</a>
+            </div>
+        </div>
+
+        <div class="submit-section" id="submitSection" style="display: none;">
+            <p>✅ 資料已提交，專業顧問將盡快與您聯繫！</p>
+            <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                表單編號：<span id="formId"></span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // 儲存使用者回答
+        const answers = {};
+        let currentQuestion = 1;
+        const totalQuestions = 12;
+
+        // 更新進度條
+        function updateProgress() {
+            const progress = (currentQuestion / totalQuestions) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        // 選擇單選選項
+        function selectOption(element, key, value) {
+            const parent = element.parentElement;
+            parent.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            answers[key] = value;
+            
+            // 特殊處理：根據險種類型跳過問題
+            if (key === 'insurance_type') {
+                if (value === 'auto') {
+                    // 車險路徑：跳過產險問題，顯示車險問題
+                    goToQuestion(2);
+                    return;
+                } else if (value === 'property') {
+                    // 產險路徑：隱藏車險問題，直接到產險
+                    goToQuestion(5);
+                    return;
+                }
+                // both: 正常流程，先做車險再做產險
+            }
+            
+            // 自動下一題
+            if (currentQuestion < totalQuestions) {
+                setTimeout(() => nextQuestion(), 300);
+            }
+        }
+
+        // 切換複選框
+        function toggleCheckbox(element) {
+            const checkbox = element.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            element.style.background = checkbox.checked ? '#f0f7ff' : '';
+            element.style.borderColor = checkbox.checked ? '#00a8e8' : '#e0e0e0';
+        }
+
+        // 確認複選框選擇
+        function confirmCheckbox(groupId, nextQ) {
+            const checkboxes = document.querySelectorAll(`#${groupId} input[type="checkbox"]:checked`);
+            if (checkboxes.length === 0) {
+                alert('請至少選擇一個選項');
+                return;
+            }
+            
+            const values = Array.from(checkboxes).map(cb => cb.value);
+            let key;
+            if (groupId === 'propertyTypes') key = 'property_types';
+            else if (groupId === 'coverageNeeds') key = 'coverage_needs';
+            else if (groupId === 'specialNeeds') key = 'special_needs';
+            
+            answers[key] = values;
+            goToQuestion(nextQ);
+        }
+
+        // 下一題
+        function nextQuestion() {
+            if (currentQuestion === totalQuestions) {
+                const name = document.getElementById('name').value;
+                const phone = document.getElementById('phone').value;
+                if (!name || !phone) {
+                    alert('請填寫姓名和電話');
+                    return;
+                }
+                answers.name = name;
+                answers.phone = phone;
+                answers.email = document.getElementById('email').value;
+                answers.contact_time = document.getElementById('contact_time').value;
+                
+                showResult();
+                return;
+            }
+            
+            if (currentQuestion < totalQuestions) {
+                goToQuestion(currentQuestion + 1);
+            }
+        }
+
+        // 上一題
+        function prevQuestion() {
+            if (currentQuestion > 1) {
+                // 智能返回：根據險種類型決定返回路徑
+                if (currentQuestion === 5 && answers.insurance_type === 'auto') {
+                    // 純車險從Q5返回Q4
+                    goToQuestion(4);
+                } else if (currentQuestion === 5 && answers.insurance_type === 'property') {
+                    // 純產險從Q5返回Q1
+                    goToQuestion(1);
+                } else {
+                    goToQuestion(currentQuestion - 1);
+                }
+            }
+        }
+
+        // 跳轉到指定題目
+        function goToQuestion(q) {
+            document.querySelectorAll('.question').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector(`.question[data-q="${q}"]`).classList.add('active');
+            currentQuestion = q;
+            updateProgress();
+            
+            // 更新按鈕
+            const nextBtn = document.getElementById('nextBtn');
+            if (q === totalQuestions) {
+                nextBtn.textContent = '查看推薦方案';
+            } else {
+                nextBtn.textContent = '下一題';
+            }
+            
+            document.getElementById('prevBtn').style.display = q === 1 ? 'none' : 'block';
+        }
+
+        // 顯示結果
+        function showResult() {
+            document.getElementById('questionnaire').style.display = 'none';
+            document.getElementById('result').classList.add('active');
+            
+            generateProfileSummary();
+            generateRecommendations();
+        }
+
+        // 生成個人摘要
+        function generateProfileSummary() {
+            const insuranceMap = {
+                'auto': '🚗 汽車保險',
+                'property': '🏠 產物保險',
+                'both': '🔄 車險+產險'
+            };
+            const vehicleMap = {
+                'gasoline': '⛽ 汽油/柴油車',
+                'hybrid': '🔋 油電混合車',
+                'electric': '⚡ 純電動車',
+                'motorcycle': '🏍️ 機車'
+            };
+            const budgetMap = {
+                'economy': '💰 經濟型',
+                'standard': '💰💰 標準型',
+                'premium': '💰💰💰 尊榮型'
+            };
+            
+            let html = `<div class="profile-item"><span>規劃類型</span><span>${insuranceMap[answers.insurance_type] || '-'}</span></div>`;
+            
+            if (answers.vehicle_type) {
+                html += `<div class="profile-item"><span>車輛類型</span><span>${vehicleMap[answers.vehicle_type] || '-'}</span></div>`;
+            }
+            if (answers.budget) {
+                html += `<div class="profile-item"><span>保費預算</span><span>${budgetMap[answers.budget] || '-'}</span></div>`;
+            }
+            
+            document.getElementById('profileContent').innerHTML = html;
+        }
+
+        // 生成保單推薦
+        function generateRecommendations() {
+            const recommendations = [];
+            const isEV = answers.vehicle_type === 'electric';
+            const isHybrid = answers.vehicle_type === 'hybrid';
+            
+            // === 車險推薦 ===
+            if (answers.insurance_type === 'auto' || answers.insurance_type === 'both') {
+                
+                // 強制險（必備）
+                recommendations.push({
+                    priority: 'high',
+                    title: '🛡️ 強制汽車責任保險（法定必保）',
+                    products: ['富邦強制汽車責任險'],
+                    reason: '依法規定必須投保，保障車禍受害人',
+                    features: ['人身傷害給付最高200萬', '死亡給付最高200萬', '法律強制投保']
+                });
+                
+                // 電動車特殊保障
+                if (isEV) {
+                    recommendations.push({
+                        priority: 'high',
+                        title: '⚡ 電動車專屬保障方案（優先）',
+                        products: ['富邦電動車專屬車體險', '電池/馬達附加條款', '充電設備損失險'],
+                        reason: '電動車電池佔車價40-60%，需專屬保障',
+                        features: ['電池損壞/故障保障', '充電樁設備保障', '馬達控制系統保障', '涉水短路保障']
+                    });
+                }
+                
+                // 車體險
+                if (answers.vehicle_age === 'new' || answers.vehicle_age === 'nearly_new') {
+                    recommendations.push({
+                        priority: 'high',
+                        title: isEV ? '🔋 電動車全險（甲/乙式）' : '🚗 車體損失險（甲/乙式）',
+                        products: isEV ? ['電動車甲式車體險', '電池單獨損失附加'] : ['富邦甲式車體險', '富邦乙式車體險'],
+                        reason: isEV ? '新電動車價值高，建議投保甲式全險' : '新車建議投保甲式或乙式車體險',
+                        features: ['甲式：全損+竊盜+各種意外', '乙式：車碰車+火災+爆炸+竊盜', '附加車體險不計免賠']
+                    });
+                } else if (answers.vehicle_age === 'mid') {
+                    recommendations.push({
+                        priority: 'medium',
+                        title: '🚗 車體損失險（丙式/限額）',
+                        products: ['富邦丙式車體險', '限額車體險'],
+                        reason: '中齡車建議丙式，保費較低仍有基本保障',
+                        features: ['丙式：車碰車+火災+爆炸', '保費較甲乙式低', '可選限額給付']
+                    });
+                }
+                
+                // 第三人責任險
+                const thirdPartyProducts = ['富邦第三人責任險（車險）'];
+                if (answers.budget === 'premium') {
+                    thirdPartyProducts.push('超額責任險（保額500萬以上）');
+                }
+                recommendations.push({
+                    priority: 'high',
+                    title: '👥 第三人責任險（強烈建議）',
+                    products: thirdPartyProducts,
+                    reason: '補強制險不足，保障自駕意外賠償責任',
+                    features: ['傷害責任200-1000萬', '財損責任50-200萬', '乘客責任可附加']
+                });
+                
+                // 駕駛人傷害險
+                recommendations.push({
+                    priority: answers.driving === 'newbie' ? 'high' : 'medium',
+                    title: '🤕 駕駛人傷害險',
+                    products: ['富邦駕駛人傷害險', '附加連帶保險'],
+                    reason: answers.driving === 'newbie' ? '新手駕駛風險較高，強烈建議投保' : '保障自身駕車時的人身安全',
+                    features: ['駕車意外身故/失能給付', '醫療費用給付', '乘客連帶保障']
+                });
+                
+                // 道路救援
+                if (answers.usage === 'commute' || answers.coverage_needs?.includes('roadside')) {
+                    recommendations.push({
+                        priority: 'medium',
+                        title: '🚗 道路救援服務',
+                        products: ['富邦24小時道路救援', '電動車專屬拖吊'],
+                        reason: isEV ? '電動車故障需專屬平板拖吊，避免底盤損壞' : '通勤族必備，故障不煩惱',
+                        features: ['50公里免費拖吊', '現場急修服務', '代為送油/送水', isEV ? '專用平板拖吊' : '']
+                    });
+                }
+                
+                // 機車險
+                if (answers.vehicle_type === 'motorcycle') {
+                    recommendations.push({
+                        priority: 'high',
+                        title: '🏍️ 機車專屬保障',
+                        products: ['強制機車責任險', '機車第三人責任險', '機車竊盜險'],
+                        reason: '機車事故率高，建議完整投保',
+                        features: ['強制險法定必保', '第三責任補強', '竊盜GPS尋車']
+                    });
+                }
+            }
+            
+            // === 產險推薦 ===
+            if (answers.insurance_type === 'property' || answers.insurance_type === 'both') {
+                
+                // 住宅火災險
+                if (answers.home_type && answers.home_type !== 'none') {
+                    recommendations.push({
+                        priority: 'high',
+                        title: '🏠 住宅火災及地震險',
+                        products: ['富邦住宅火災基本險', '擴大地震險', '超額地震險'],
+                        reason: '火災+地震雙重保障，台灣地震頻繁必備',
+                        features: ['火災損失最高1200萬', '地震基本保障150萬', '擴充保障可達1000萬']
+                    });
+                }
+                
+                // 住宅動產險
+                if (answers.property_types?.includes('content')) {
+                    recommendations.push({
+                        priority: 'medium',
+                        title: '📺 住宅動產綜合保險',
+                        products: ['富邦住宅動產險', '租客財產險'],
+                        reason: '保障家中貴重物品、家具電器',
+                        features: ['火災/竊盜/水損保障', '貴重物品另議保額', '臨時住宿費用給付']
+                    });
+                }
+                
+                // 責任險
+                if (answers.property_types?.includes('liability')) {
+                    recommendations.push({
+                        priority: 'medium',
+                        title: '⚖️ 個人責任險',
+                        products: ['富邦個人責任險', '家庭責任綜合險'],
+                        reason: '保障因過失造成他人損害的賠償責任',
+                        features: ['個人傷害責任200萬', '財損責任100萬', '承租公寓責任保障']
+                    });
+                }
+                
+                // 意外傷害險
+                if (answers.property_types?.includes('accident')) {
+                    recommendations.push({
+                        priority: 'medium',
+                        title: '🤕 個人意外傷害險',
+                        products: ['富邦個人傷害險', '特定意外加倍給付'],
+                        reason: '24小時全天候意外保障，不限場所',
+                        features: ['意外身故/失能給付', '意外醫療實支實付', '特定意外（交通/溺水）加倍']
+                    });
+                }
+                
+                // 旅遊不便險
+                if (answers.property_types?.includes('travel')) {
+                    recommendations.push({
+                        priority: 'low',
+                        title: '✈️ 旅遊不便險',
+                        products: ['富邦旅遊綜合險', '海外突發疾病醫療'],
+                        reason: '出國旅遊必備，航班延誤/行李遺失都有保障',
+                        features: ['班機延誤4小時給付', '行李遺失/延誤', '旅程取消/縮短', '海外醫療保障']
+                    });
+                }
+                
+                // 手機險
+                if (answers.property_types?.includes('mobile')) {
+                    recommendations.push({
+                        priority: 'low',
+                        title: '📱 行動裝置險',
+                        products: ['富邦手機/平板保險', '螢幕碎裂險'],
+                        reason: '手機螢幕破裂、進水、竊盜都有保障',
+                        features: ['螢幕碎裂免估價維修', '整機損失保障', '資料救援服務']
+                    });
+                }
+                
+                // 寵物險
+                if (answers.property_types?.includes('pet')) {
+                    recommendations.push({
+                        priority: 'low',
+                        title: '🐕 寵物險',
+                        products: ['富邦寵物醫療險', '寵物責任險'],
+                        reason: '毛小孩醫療費用不便宜，寵物險分擔風險',
+                        features: ['疾病/意外醫療給付', '手術費用保障', '寵物咬傷他人責任']
+                    });
+                }
+            }
+            
+            // 特殊需求處理
+            if (answers.special_needs) {
+                if (answers.special_needs.includes('windscreen')) {
+                    recommendations.push({
+                        priority: 'low',
+                        title: '🪟 擋風玻璃/車體鈑金單獨險',
+                        products: ['富邦車體鈑金險', '玻璃單獨破碎險'],
+                        reason: '不需動用車體險主約，小損壞不影響保費折扣',
+                        features: ['前擋/後擋/車窗玻璃', '車體小鈑金維修', '不影響無賠款折扣']
+                    });
+                }
+                if (answers.special_needs.includes('replacement') && (answers.vehicle_age === 'new' || answers.vehicle_age === 'nearly_new')) {
+                    recommendations.push({
+                        priority: 'medium',
+                        title: '🆕 新車全損置換保障',
+                        products: ['新車重置費用附加條款'],
+                        reason: '新車全損時按新車價格賠付，而非折舊價',
+                        features: ['1年內新車全損重置', '2年內折舊後給付', '免折舊爭議']
+                    });
+                }
+            }
+            
+            // 渲染推薦
+            const container = document.getElementById('recommendations');
+            container.innerHTML = recommendations.map((rec, index) => `
+                <div class="recommendation-card priority-${rec.priority}">
+                    <span class="badge">${index + 1}</span>
+                    <h4>${rec.title}</h4>
+                    <p><strong>適合原因：</strong>${rec.reason}</p>
+                    <p style="margin-top: 10px;"><strong>推薦保單：</strong>${rec.products.join('、')}</p>
+                    <ul>
+                        ${rec.features.filter(f => f).map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+        }
+
+        // 提交到 Google 表單
+        function submitToGoogleForm() {
+            const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/你的表單ID/formResponse';
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = GOOGLE_FORM_URL;
+            form.target = '_blank';
+            
+            const fields = {
+                'entry.1000000': answers.name,
+                'entry.1000001': answers.phone,
+                'entry.1000002': answers.email,
+                'entry.1000003': answers.insurance_type,
+                'entry.1000004': answers.vehicle_type,
+                'entry.1000005': answers.budget,
+                'entry.1000006': JSON.stringify(answers.property_types || []),
+                'entry.1000007': JSON.stringify(answers.coverage_needs || []),
+                'entry.1000008': answers.contact_time,
+            };
+            
+            for (const [key, value] of Object.entries(fields)) {
+                if (value) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = value;
+                    form.appendChild(input);
+                }
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+            
+            document.querySelector('.cta-section').style.display = 'none';
+            document.getElementById('submitSection').style.display = 'block';
+            document.getElementById('formId').textContent = 'FB' + Date.now().toString(36).toUpperCase();
+        }
+
+        // 初始化
+        updateProgress();
+        document.getElementById('prevBtn').style.display = 'none';
+    </script>
+</body>
+</html>

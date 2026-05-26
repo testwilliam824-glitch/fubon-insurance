@@ -29,6 +29,8 @@
     },
     status: { new: '新案件', contacted: '已聯繫', closed: '已結案' },
     statusClass: { new: 'tag-new', contacted: 'tag-contacted', closed: 'tag-closed' },
+    insType: { life: '💼 壽險', property: '🏠 產險', auto: '🚗 車險' },
+    insClass: { life: 'tag-new', property: 'tag-low', auto: 'tag-medium' },
   };
 
   let customers = [];
@@ -127,11 +129,13 @@
 
   function getFiltered() {
     const q = $('#searchText').value.trim().toLowerCase();
+    const type = $('#filterType').value;
     const age = $('#filterAge').value;
     const income = $('#filterIncome').value;
     const status = $('#filterStatus').value;
     return customers.filter((c) => {
       if (q && !(c.name || '').toLowerCase().includes(q) && !(c.phone || '').includes(q)) return false;
+      if (type && (c.insurance_type || 'life') !== type) return false;
       if (age && c.age !== age) return false;
       if (income && c.income !== income) return false;
       if (status && c.status !== status) return false;
@@ -149,7 +153,7 @@
 
     const tbody = $('#tableBody');
     if (pageData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="9" class="empty-state">尚無資料</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" class="empty-state">尚無資料</td></tr>';
     } else {
       tbody.innerHTML = pageData.map((c) => {
         const date = new Date(c.timestamp).toLocaleString('zh-TW', { hour12: false });
@@ -160,6 +164,7 @@
         return `
           <tr>
             <td>${date}</td>
+            <td><span class="tag ${LABELS.insClass[c.insurance_type] || 'tag-new'}">${LABELS.insType[c.insurance_type] || '💼 壽險'}</span></td>
             <td><strong>${c.name || ''}</strong>${c.line_user_id ? '<span class="line-badge">LINE</span>' : ''}</td>
             <td>${c.phone || ''}</td>
             <td>${LABELS.age[c.age] || c.age || ''}</td>
@@ -319,7 +324,7 @@
     $('#logoutBtn').addEventListener('click', logout);
     $('#searchBtn').addEventListener('click', () => renderTable(1));
     $('#resetBtn').addEventListener('click', () => {
-      ['searchText', 'filterAge', 'filterIncome', 'filterStatus'].forEach((id) => { $('#' + id).value = ''; });
+      ['searchText', 'filterType', 'filterAge', 'filterIncome', 'filterStatus'].forEach((id) => { $('#' + id).value = ''; });
       renderTable(1);
     });
     $('#exportBtn').addEventListener('click', exportCSV);

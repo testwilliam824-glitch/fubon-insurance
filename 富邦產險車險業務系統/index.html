@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>富邦產險車險業務智能系統</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            background: linear-gradient(135deg, #004098 0%, #0066cc 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #004098 0%, #0066cc 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .nav-tabs {
+            display: flex;
+            background: #f0f4f8;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            font-weight: bold;
+            color: #666;
+            transition: all 0.3s;
+        }
+        .nav-tab:hover { background: #e8f0f8; }
+        .nav-tab.active {
+            background: white;
+            color: #004098;
+            border-bottom: 3px solid #004098;
+        }
+        .content { padding: 30px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* 表單樣式 */
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .form-section h3 {
+            color: #004098;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-left: 4px solid #004098;
+            padding-left: 10px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #004098;
+        }
+        
+        /* 按鈕樣式 */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #004098 0%, #0066cc 100%);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,64,152,0.3); }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        /* 表格樣式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .data-table th {
+            background: #004098;
+            color: white;
+            font-weight: bold;
+        }
+        .data-table tr:hover { background: #f8f9fa; }
+        .data-table input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        /* 卡片樣式 */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .card h4 {
+            color: #004098;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        /* 圖表容器 */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        /* 比較區塊 */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .comparison-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+        }
+        .comparison-card.current { border-color: #f59e0b; }
+        .comparison-card.fubon { border-color: #004098; background: #f0f7ff; }
+        .comparison-card.other { border-color: #6b7280; }
+        .comparison-card h5 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .price-tag {
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .price-tag.high { color: #dc2626; }
+        .price-tag.low { color: #10b981; }
+        .price-tag.medium { color: #f59e0b; }
+        
+        /* 出險紀錄 */
+        .claim-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #dc2626;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .claim-item.resolved { border-left-color: #10b981; }
+        .claim-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .claim-status.open { background: #fef3c7; color: #92400e; }
+        .claim-status.closed { background: #d1fae5; color: #065f46; }
+        
+        /* 試算結果 */
+        .quote-result {
+            background: linear-gradient(135deg, #f0f7ff 0%, #e8f4f8 100%);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        .quote-result h4 {
+            color: #004098;
+            margin-bottom: 15px;
+        }
+        .quote-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .quote-total {
+            font-size: 24px;
+            font-weight: bold;
+            color: #004098;
+            text-align: right;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #004098;
+        }
+        
+        /* 風險評級 */
+        .risk-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .risk-low { background: #d1fae5; color: #065f46; }
+        .risk-medium { background: #fef3c7; color: #92400e; }
+        .risk-high { background: #fee2e2; color: #991b1b; }
+        
+        /* 無賠款折扣 */
+        .ncd-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f0fdf4;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .ncd-rate {
+            font-size: 36px;
+            font-weight: bold;
+            color: #10b981;
+        }
+        
+        /* 列印樣式 */
+        @media print {
+            body { background: white; }
+            .nav-tabs, .btn { display: none; }
+            .tab-content { display: block !important; }
+            .container { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 富邦產險車險業務智能系統</h1>
+            <p>客戶需求分析 × 出險紀錄查詢 × 保單比較 × 智能試算</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('customer')">👤 客戶資料</button>
+            <button class="nav-tab" onclick="switchTab('history')">📋 出險紀錄</button>
+            <button class="nav-tab" onclick="switchTab('compare')">⚖️ 保單比較</button>
+            <button class="nav-tab" onclick="switchTab('quote')">🧮 保費試算</button>
+            <button class="nav-tab" onclick="switchTab('report')">📊 分析報告</button>
+        </div>
+
+        <div class="content">
+            
+            <!-- 客戶資料頁 -->
+            <div id="customer" class="tab-content active">
+                <div class="form-section">
+                    <h3>📝 基本資料</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>客戶姓名 *</label>
+                            <input type="text" id="custName" placeholder="請輸入姓名">
+                        </div>
+                        <div class="form-group">
+                            <label>身分證字號 *</label>
+                            <input type="text" id="custId" placeholder="A123456789" maxlength="10">
+                        </div>
+                        <div class="form-group">
+                            <label>聯絡電話 *</label>
+                            <input type="tel" id="custPhone" placeholder="0912345678">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>保險類型</label>
+                            <select id="insuranceType" onchange="updateInsuranceType()">
+                                <option value="auto">🚗 車險</option>
+                                <option value="property">🏠 產險</option>
+                                <option value="both">🔄 車險+產險</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>業務來源</label>
+                            <select id="source">
+                                <option value="referral">客戶轉介紹</option>
+                                <option value="walkin">臨櫃諮詢</option>
+                                <option value="online">網路/電話</option>
+                                <option value="renewal">續保</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>查詢日期</label>
+                            <input type="date" id="queryDate">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section" id="autoSection">
+                    <h3>🚗 車輛資料</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>車牌號碼 *</label>
+                            <input type="text" id="plateNo" placeholder="ABC-1234" maxlength="8">
+                        </div>
+                        <div class="form-group">
+                            <label>車型/廠牌</label>
+                            <input type="text" id="carModel" placeholder="例如：Toyota RAV4">
+                        </div>
+                        <div class="form-group">
+                            <label>車輛類型</label>
+                            <select id="vehicleType" onchange="updateVehicleType()">
+                                <option value="gasoline">⛽ 汽油車</option>
+                                <option value="diesel">⛽ 柴油車</option>
+                                <option value="hybrid">🔋 油電混合</option>
+                                <option value="electric">⚡ 純電動車</option>
+                                <option value="motorcycle">🏍️ 機車</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>出廠年份</label>
+                            <select id="carYear">
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                                <option value="2020">2020</option>
+                                <option value="2019">2019</option>
+                                <option value="2018">2018</option>
+                                <option value="2017">2017</option>
+                                <option value="before2017">2017以前</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>車價（萬元）</label>
+                            <input type="number" id="carValue" placeholder="例如：80" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>使用性質</label>
+                            <select id="usageType">
+                                <option value="private">自用</option>
+                                <option value="commercial">營業用</option>
+                                <option value="rental">租賃車</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>現行保險公司</label>
+                            <select id="currentInsurer">
+                                <option value="">無/新車</option>
+                                <option value="fubon">富邦產險</option>
+                                <option value="cathay">國泰產險</option>
+                                <option value="mingtai">明台產險</option>
+                                <option value="nan shan">南山產險</option>
+                                <option value="hotai">和泰產險</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>現行保費（元/年）</label>
+                            <input type="number" id="currentPremium" placeholder="例如：25000">
+                        </div>
+                        <div class="form-group">
+                            <label>無賠款折扣(NCD)</label>
+                            <select id="ncdRate">
+                                <option value="0.38">0.38 (連續3年無理賠)</option>
+                                <option value="0.44">0.44 (連續2年無理賠)</option>
+                                <option value="0.5">0.50 (連續1年無理賠)</option>
+                                <option value="0.63">0.63 (無理賴紀錄)</option>
+                                <option value="0.72">0.72 (1次理賠)</option>
+                                <option value="0.81">0.81 (2次理賴)</option>
+                                <option value="0.9">0.90 (3次理賴)</option>
+                                <option value="1.0">1.00 (4次以上)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- 電動車專屬欄位 -->
+                    <div id="evSection" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>電池容量 (kWh)</label>
+                                <input type="number" id="batteryCapacity" placeholder="例如：60">
+                            </div>
+                            <div class="form-group">
+                                <label>充電方式</label>
+                                <select id="chargingType">
+                                    <option value="home">家用充電</option>
+                                    <option value="public">公共充電</option>
+                                    <option value="both">兩者皆有</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>是否安裝家用充電樁</label>
+                                <select id="homeCharger">
+                                    <option value="yes">是</option>
+                                    <option value="no">否</option>
+                                    <option value="planning">規劃中</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section" id="propertySection">
+                    <h3>🏠 產險資料</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>住宅類型</label>
+                            <select id="homeType">
+                                <option value="apartment">公寓大廈</option>
+                                <option value="house">獨棟透天</option>
+                                <option value="rental">租屋</option>
+                                <option value="none">無</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>房屋市值（萬元）</label>
+                            <input type="number" id="homeValue" placeholder="例如：1500">
+                        </div>
+                        <div class="form-group">
+                            <label>屋齡</label>
+                            <select id="homeAge">
+                                <option value="0-5">5年內</option>
+                                <option value="6-15">6-15年</option>
+                                <option value="16-30">16-30年</option>
+                                <option value="30+">30年以上</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="saveCustomer()">💾 儲存客戶資料</button>
+                    <button class="btn btn-secondary" onclick="clearForm()">🔄 清除重填</button>
+                </div>
+            </div>
+
+            <!-- 出險紀錄頁 -->
+            <div id="history" class="tab-content">
+                <div class="card">
+                    <h4>📋 查詢近5年出險紀錄</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>查詢對象</label>
+                            <select id="claimQueryType">
+                                <option value="current">現行保險公司</option>
+                                <option value="all">全國聯合查詢</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>身分證字號</label>
+                            <input type="text" id="claimQueryId" placeholder="查詢用">
+                        </div>
+                        <div class="form-group">
+                            <label>車牌號碼</label>
+                            <input type="text" id="claimQueryPlate" placeholder="查詢用">
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="queryClaims()">🔍 查詢出險紀錄</button>
+                    <button class="btn btn-success" onclick="addClaimManually()">➕ 手動新增紀錄</button>
+                </div>
+
+                <div class="card">
+                    <h4>📊 出險統計</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>近5年出險次數</label>
+                            <input type="number" id="totalClaims" value="0" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>理賠總額（萬元）</label>
+                            <input type="number" id="totalClaimAmount" value="0" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>風險等級</label>
+                            <div id="riskLevel"><span class="risk-badge risk-low">低風險</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="ncd-display">
+                        <div>
+                            <div style="font-size: 14px; color: #666;">建議無賠款折扣(NCD)</div>
+                            <div class="ncd-rate" id="suggestedNcd">0.38</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 14px; color: #666;">預估影響</div>
+                            <div id="ncdImpact">享最優惠費率，保費可省約 62%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h4>📝 出險明細</h4>
+                    <div id="claimList">
+                        <div style="text-align: center; color: #999; padding: 40px;">
+                            尚無出險紀錄，請點擊「查詢出險紀錄」或「手動新增」
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 保單比較頁 -->
+            <div id="compare" class="tab-content">
+                <div class="card">
+                    <h4>⚖️ 既有保單 vs 富邦方案比較</h4>
+                    
+                    <div class="comparison-grid">
+                        <div class="comparison-card current">
+                            <h5>🟠 現行保單</h5>
+                            <div class="form-group">
+                                <label>保險公司</label>
+                                <select id="compareCurrentCompany" onchange="updateComparison()">
+                                    <option value="">選擇公司</option>
+                                    <option value="cathay">國泰產險</option>
+                                    <option value="mingtai">明台產險</option>
+                                    <option value="nan shan">南山產險</option>
+                                    <option value="hotai">和泰產險</option>
+                                    <option value="other">其他</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>現行保費</label>
+                                <input type="number" id="compareCurrentPremium" placeholder="0" onchange="updateComparison()">
+                            </div>
+                            <div class="price-tag medium" id="currentPrice">$0</div>
+                            <div id="currentFeatures">
+                                <small>請輸入既有保單資訊</small>
+                            </div>
+                        </div>
+
+                        <div class="comparison-card fubon">
+                            <h5>🔵 富邦方案</h5>
+                            <div class="form-group">
+                                <label>推薦方案</label>
+                                <select id="compareFubonPlan" onchange="updateComparison()">
+                                    <option value="basic">基本保障</option>
+                                    <option value="standard">標準方案</option>
+                                    <option value="premium">尊榮方案</option>
+                                    <option value="ev">電動車專屬</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>試算保費</label>
+                                <input type="number" id="compareFubonPremium" placeholder="自動計算" readonly>
+                            </div>
+                            <div class="price-tag low" id="fubonPrice">$0</div>
+                            <div id="fubonFeatures">
+                                <ul style="font-size: 14px; padding-left: 20px;">
+                                    <li>✓ 甲式車體險</li>
+                                    <li>✓ 第三人責任險 300萬</li>
+                                    <li>✓ 駕駛人傷害險</li>
+                                    <li>✓ 道路救援</li>
+                                    <li style="color: #10b981;">✓ 24小時急難救助</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="comparison-card other">
+                            <h5>📊 比較摘要</h5>
+                            <div id="comparisonResult" style="text-align: center; padding: 20px 0;">
+                                <div style="font-size: 48px;">💰</div>
+                                <div style="color: #666; margin: 10px 0;">輸入資料查看比較結果</div>
+                            </div>
+                            <div id="savingsInfo" style="display: none;">
+                                <div style="background: #d1fae5; border-radius: 8px; padding: 15px; text-align: center;">
+                                    <div style="font-size: 14px; color: #065f46;">預估每年可省</div>
+                                    <div style="font-size: 36px; font-weight: bold; color: #10b981;" id="savingsAmount">$0</div>
+                                    <div style="font-size: 14px; color: #065f46;" id="savingsPercent">省 0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="generateComparisonTable()">📋 產生詳細比較表</button>
+                </div>
+
+                <div class="card" id="comparisonTableCard" style="display: none;">
+                    <h4>📊 詳細保障內容比較</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>保障項目</th>
+                                <th>現行保單</th>
+                                <th>富邦方案</th>
+                                <th>比較</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody">
+                            <!-- 動態生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 保費試算頁 -->
+            <div id="quote" class="tab-content">
+                <div class="card">
+                    <h4>🧮 智能保費試算</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>險種類型</label>
+                            <select id="quoteType">
+                                <option value="auto">車險</option>
+                                <option value="property">產險</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>方案等級</label>
+                            <select id="quotePlan">
+                                <option value="basic">基本型</option>
+                                <option value="standard">標準型</option>
+                                <option value="premium">尊榮型</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>NCD係數</label>
+                            <select id="quoteNcd">
+                                <option value="0.38">0.38</option>
+                                <option value="0.44">0.44</option>
+                                <option value="0.5">0.50</option>
+                                <option value="0.63">0.63</option>
+                                <option value="0.72">0.72</option>
+                                <option value="0.81">0.81</option>
+                                <option value="0.9">0.90</option>
+                                <option value="1.0">1.00</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="calculateQuote()">🧮 開始試算</button>
+                    <button class="btn btn-success" onclick="printQuote()">🖨️ 列印報價單</button>
+                </div>
+
+                <div id="quoteResult" style="display: none;">
+                    <div class="quote-result">
+                        <h4>📋 試算結果</h4>
+                        
+                        <div id="quoteDetails">
+                            <!-- 動態生成 -->
+                        </div>
+                        
+                        <div class="quote-total">
+                            總保費：<span id="totalPremium">$0</span> /年
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="premiumChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分析報告頁 -->
+            <div id="report" class="tab-content">
+                <div class="card">
+                    <h4>📊 客戶風險分析報告</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>報告期間</label>
+                            <select id="reportPeriod">
+                                <option value="1">近1年</option>
+                                <option value="3">近3年</option>
+                                <option value="5">近5年</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>報告類型</label>
+                            <select id="reportType">
+                                <option value="risk">風險分析</option>
+                                <option value="trend">趨勢分析</option>
+                                <option value="comparison">同業比較</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="generateReport()">📊 產生報告</button>
+                </div>
+
+                <div id="reportContent" style="display: none;">
+                    <div class="card">
+                        <h4>📈 出險趨勢圖</h4>
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h4>📊 理賠類型分布</h4>
+                        <div class="chart-container">
+                            <canvas id="claimTypeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h4>💡 業務建議</h4>
+                        <div id="businessAdvice">
+                            <!-- 動態生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 全域變數
+        let claims = [];
+        let customerData = {};
+        let chartInstances = {};
+
+        // 切換頁籤
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // 更新保險類型顯示
+        function updateInsuranceType() {
+            const type = document.getElementById('insuranceType').value;
+            document.getElementById('autoSection').style.display = 
+                (type === 'auto' || type === 'both') ? 'block' : 'none';
+            document.getElementById('propertySection').style.display = 
+                (type === 'property' || type === 'both') ? 'block' : 'none';
+        }
+
+        // 更新車輛類型顯示
+        function updateVehicleType() {
+            const type = document.getElementById('vehicleType').value;
+            const isEV = type === 'electric';
+            document.getElementById('evSection').style.display = isEV ? 'block' : 'none';
+        }
+
+        // 儲存客戶資料
+        function saveCustomer() {
+            customerData = {
+                name: document.getElementById('custName').value,
+                id: document.getElementById('custId').value,
+                phone: document.getElementById('custPhone').value,
+                insuranceType: document.getElementById('insuranceType').value,
+                plateNo: document.getElementById('plateNo')?.value,
+                carModel: document.getElementById('carModel')?.value,
+                vehicleType: document.getElementById('vehicleType')?.value,
+                currentInsurer: document.getElementById('currentInsurer')?.value,
+                currentPremium: document.getElementById('currentPremium')?.value,
+                ncdRate: document.getElementById('ncdRate')?.value
+            };
+            
+            alert('✅ 客戶資料已儲存！');
+            
+            // 自動帶入比較頁
+            if (customerData.currentInsurer) {
+                document.getElementById('compareCurrentCompany').value = customerData.currentInsurer;
+            }
+            if (customerData.currentPremium) {
+                document.getElementById('compareCurrentPremium').value = customerData.currentPremium;
+            }
+        }
+
+        // 清除表單
+        function clearForm() {
+            if (confirm('確定要清除所有資料嗎？')) {
+                document.querySelectorAll('input').forEach(el => el.value = '');
+                document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+                claims = [];
+                updateClaimDisplay();
+            }
+        }
+
+        // 查詢出險紀錄（模擬）
+        function queryClaims() {
+            // 模擬查詢結果
+            claims = [
+                {
+                    date: '2024-03-15',
+                    type: '碰撞',
+                    amount: 85000,
+                    status: 'closed',
+                    insurer: '國泰產險',
+                    description: '停車場擦撞'
+                },
+                {
+                    date: '2023-08-22',
+                    type: '玻璃',
+                    amount: 12000,
+                    status: 'closed',
+                    insurer: '國泰產險',
+                    description: '前擋風玻璃破裂'
+                }
+            ];
+            
+            updateClaimDisplay();
+            calculateRiskLevel();
+            
+            alert('✅ 查詢完成！發現 2 筆出險紀錄');
+        }
+
+        // 手動新增出險紀錄
+        function addClaimManually() {
+            const date = prompt('請輸入出險日期 (YYYY-MM-DD)：');
+            if (!date) return;
+            
+            const type = prompt('事故類型（碰撞/玻璃/竊盜/其他）：');
+            const amount = parseInt(prompt('理賠金額：') || '0');
+            
+            claims.push({
+                date: date,
+                type: type,
+                amount: amount,
+                status: 'closed',
+                insurer: customerData.currentInsurer || '未知',
+                description: '手動輸入'
+            });
+            
+            updateClaimDisplay();
+            calculateRiskLevel();
+        }
+
+        // 更新出險顯示
+        function updateClaimDisplay() {
+            const container = document.getElementById('claimList');
+            
+            if (claims.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #999; padding: 40px;">
+                        尚無出險紀錄
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = claims.map(claim => `
+                <div class="claim-item ${claim.status}">
+                    <div>
+                        <div style="font-weight: bold;">${claim.date} - ${claim.type}</div>
+                        <div style="font-size: 14px; color: #666;">
+                            ${claim.description} | ${claim.insurer}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 20px; font-weight: bold; color: #dc2626;">
+                            $${claim.amount.toLocaleString()}
+                        </div>
+                        <span class="claim-status ${claim.status}">
+                            ${claim.status === 'closed' ? '已結案' : '處理中'}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 更新統計
+            document.getElementById('totalClaims').value = claims.length;
+            const totalAmount = claims.reduce((sum, c) => sum + c.amount, 0);
+            document.getElementById('totalClaimAmount').value = (totalAmount / 10000).toFixed(1);
+        }
+
+        // 計算風險等級
+        function calculateRiskLevel() {
+            const count = claims.length;
+            let riskClass, riskText, ncdRate, ncdText;
+            
+            if (count === 0) {
+                riskClass = 'risk-low';
+                riskText = '低風險';
+                ncdRate = '0.38';
+                ncdText = '享最優惠費率，保費可省約 62%';
+            } else if (count <= 2) {
+                riskClass = 'risk-medium';
+                riskText = '中風險';
+                if (count === 1) {
+                    ncdRate = '0.72';
+                    ncdText = '1次理賠，NCD為0.72';
+                } else {
+                    ncdRate = '0.81';
+                    ncdText = '2次理賴，NCD為0.81';
+                }
+            } else {
+                riskClass = 'risk-high';
+                riskText = '高風險';
+                ncdRate = count >= 4 ? '1.00' : '0.90';
+                ncdText = count >= 4 ? '4次以上理賴，NCD為1.00' : '3次理賴，NCD為0.90';
+            }
+            
+            document.getElementById('riskLevel').innerHTML = 
+                `<span class="risk-badge ${riskClass}">${riskText}</span>`;
+            document.getElementById('suggestedNcd').textContent = ncdRate;
+            document.getElementById('ncdImpact').textContent = ncdText;
+        }
+
+        // 更新保單比較
+        function updateComparison() {
+            const currentCompany = document.getElementById('compareCurrentCompany').value;
+            const currentPremium = parseInt(document.getElementById('compareCurrentPremium').value || '0');
+            const fubonPlan = document.getElementById('compareFubonPlan').value;
+            
+            // 計算富邦保費（簡易試算）
+            let fubonPremium = 0;
+            const basePrice = 30000;
+            
+            switch(fubonPlan) {
+                case 'basic': fubonPremium = basePrice * 0.7; break;
+                case 'standard': fubonPremium = basePrice; break;
+                case 'premium': fubonPremium = basePrice * 1.3; break;
+                case 'ev': fubonPremium = basePrice * 1.1; break;
+            }
+            
+            // 套用NCD
+            const ncd = parseFloat(document.getElementById('ncdRate')?.value || '0.63');
+            fubonPremium = Math.round(fubonPremium * ncd);
+            
+            document.getElementById('compareFubonPremium').value = fubonPremium;
+            document.getElementById('currentPrice').textContent = `$${currentPremium.toLocaleString()}`;
+            document.getElementById('fubonPrice').textContent = `$${fubonPremium.toLocaleString()}`;
+            
+            // 計算差異
+            const savings = currentPremium - fubonPremium;
+            const savingsPercent = currentPremium > 0 ? Math.round((savings / currentPremium) * 100) : 0;
+            
+            if (currentPremium > 0) {
+                document.getElementById('savingsInfo').style.display = 'block';
+                document.getElementById('savingsAmount').textContent = 
+                    savings > 0 ? `$${savings.toLocaleString()}` : `$${Math.abs(savings).toLocaleString()}`;
+                document.getElementById('savingsPercent').textContent = 
+                    savings > 0 ? `省 ${savingsPercent}%` : `多 ${Math.abs(savingsPercent)}%`;
+                document.getElementById('savingsAmount').style.color = savings > 0 ? '#10b981' : '#dc2626';
+            }
+        }
+
+        // 產生詳細比較表
+        function generateComparisonTable() {
+            document.getElementById('comparisonTableCard').style.display = 'block';
+            
+            const items = [
+                { name: '強制險', current: '✓', fubon: '✓', note: '法定必保' },
+                { name: '第三人責任險', current: '200萬', fubon: '300萬', note: '富邦高100萬' },
+                { name: '車體險', current: '乙式', fubon: '甲式', note: '富邦保障更完整' },
+                { name: '駕駛人傷害險', current: '✗', fubon: '✓', note: '富邦包含' },
+                { name: '道路救援', current: '50km', fubon: '100km', note: '富邦里程更長' },
+                { name: '電池/馬達保障', current: '✗', fubon: '✓', note: '電動車適用' },
+                { name: '24小時服務', current: '✓', fubon: '✓ ✓', note: '富邦急難救助' }
+            ];
+            
+            document.getElementById('comparisonTableBody').innerHTML = items.map(item => {
+                const isBetter = item.note.includes('富邦');
+                return `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.current}</td>
+                        <td>${item.fubon}</td>
+                        <td style="color: ${isBetter ? '#10b981' : '#666'}">${item.note}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 計算試算
+        function calculateQuote() {
+            const type = document.getElementById('quoteType').value;
+            const plan = document.getElementById('quotePlan').value;
+            const ncd = parseFloat(document.getElementById('quoteNcd').value);
+            
+            let items = [];
+            let total = 0;
+            
+            if (type === 'auto') {
+                items = [
+                    { name: '強制汽車責任險', price: 1300 },
+                    { name: '第三人責任險（300萬）', price: 3500 },
+                    { name: plan === 'basic' ? '丙式車體險' : plan === 'premium' ? '甲式車體險（全險）' : '乙式車體險', 
+                      price: plan === 'basic' ? 8000 : plan === 'premium' ? 18000 : 12000 },
+                    { name: '駕駛人傷害險', price: 1200 },
+                    { name: '道路救援服務', price: 800 },
+                    { name: '乘客責任險', price: plan === 'premium' ? 1500 : 0 }
+                ].filter(item => item.price > 0);
+            } else {
+                items = [
+                    { name: '住宅火災基本險', price: 1500 },
+                    { name: '擴大地震險', price: 2500 },
+                    { name: '住宅動產險', price: plan === 'basic' ? 800 : 1500 },
+                    { name: '個人責任險', price: 600 },
+                    { name: plan === 'premium' ? '旅遊不便險' : '', price: plan === 'premium' ? 1200 : 0 }
+                ].filter(item => item.price > 0);
+            }
+            
+            const subtotal = items.reduce((sum, item) => sum + item.price, 0);
+            const discount = Math.round(subtotal * (1 - ncd));
+            total = subtotal - discount;
+            
+            // 顯示結果
+            document.getElementById('quoteResult').style.display = 'block';
+            
+            let html = items.map(item => `
+                <div class="quote-detail">
+                    <span>${item.name}</span>
+                    <span>$${item.price.toLocaleString()}</span>
+                </div>
+            `).join('');
+            
+            html += `
+                <div class="quote-detail" style="border-top: 1px solid #e0e0e0;">
+                    <span>小計</span>
+                    <span>$${subtotal.toLocaleString()}</span>
+                </div>
+                <div class="quote-detail" style="color: #10b981;">
+                    <span>NCD ${ncd} 折扣</span>
+                    <span>-$${discount.toLocaleString()}</span>
+                </div>
+            `;
+            
+            document.getElementById('quoteDetails').innerHTML = html;
+            document.getElementById('totalPremium').textContent = `$${total.toLocaleString()}`;
+            
+            // 繪製圖表
+            drawPremiumChart(items);
+        }
+
+        // 繪製保費圖表
+        function drawPremiumChart(items) {
+            const ctx = document.getElementById('premiumChart').getContext('2d');
+            
+            if (chartInstances.premium) {
+                chartInstances.premium.destroy();
+            }
+            
+            chartInstances.premium = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: items.map(i => i.name),
+                    datasets: [{
+                        data: items.map(i => i.price),
+                        backgroundColor: [
+                            '#004098', '#0066cc', '#00a8e8', '#4ade80', '#fbbf24', '#f87171'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        // 列印報價單
+        function printQuote() {
+            window.print();
+        }
+
+        // 產生報告
+        function generateReport() {
+            document.getElementById('reportContent').style.display = 'block';
+            
+            // 繪製趨勢圖
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            if (chartInstances.trend) chartInstances.trend.destroy();
+            
+            chartInstances.trend = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2021', '2022', '2023', '2024', '2025'],
+                    datasets: [{
+                        label: '出險次數',
+                        data: [0, 1, 0, 2, 0],
+                        borderColor: '#dc2626',
+                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                        fill: true
+                    }, {
+                        label: '理賠金額（萬元）',
+                        data: [0, 5, 0, 9.7, 0],
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        fill: true,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: '次數' } },
+                        y1: { beginAtZero: true, position: 'right', title: { display: true, text: '金額（萬元）' } }
+                    }
+                }
+            });
+            
+            // 繪製類型分布圖
+            const typeCtx = document.getElementById('claimTypeChart').getContext('2d');
+            if (chartInstances.type) chartInstances.type.destroy();
+            
+            chartInstances.type = new Chart(typeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['碰撞', '玻璃', '竊盜', '其他'],
+                    datasets: [{
+                        label: '出險次數',
+                        data: [1, 1, 0, 0],
+                        backgroundColor: ['#dc2626', '#f59e0b', '#10b981', '#6b7280']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // 業務建議
+            document.getElementById('businessAdvice').innerHTML = `
+                <div style="background: #f0f7ff; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
+                    <strong>📊 風險評估：</strong> 客戶近5年有2次出險紀錄，屬於中風險等級。
+                    NCD係數建議採用 0.81，建議加強第三人責任險保障。
+                </div>
+                <div style="background: #fef3c7; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
+                    <strong>💰 保費優化：</strong> 透過富邦完整方案，可維持相同保障同時優化保費結構。
+                    建議搭配多險種優惠，預估可再省 5-10%。
+                </div>
+                <div style="background: #d1fae5; border-radius: 8px; padding: 15px;">
+                    <strong>🎯 銷售策略：</strong> 強調富邦24小時道路救援及電動車專屬保障（如適用），
+                    並說明無賠款折扣制度，鼓勵安全駕駛。
+                </div>
+            `;
+        }
+
+        // 初始化
+        document.getElementById('queryDate').valueAsDate = new Date();
+        updateInsuranceType();
+    </script>
+</body>
+</html>

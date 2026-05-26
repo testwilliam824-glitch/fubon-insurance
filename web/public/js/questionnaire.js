@@ -1,10 +1,12 @@
 (function () {
-  const answers = {};
+  const insuranceType =
+    document.querySelector('meta[name="insurance-type"]')?.content || 'life';
+  const answers = { insurance_type: insuranceType };
   const params = new URLSearchParams(location.search);
   const lid = params.get('lid');
   if (lid) answers.lid = lid;
   let currentQuestion = 1;
-  const totalQuestions = 14;
+  const totalQuestions = document.querySelectorAll('.question').length;
 
   const LABELS = {
     age: {
