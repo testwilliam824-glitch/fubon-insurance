@@ -12,6 +12,7 @@
     age: {
       '0-18': '0-18 歲', '19-30': '19-30 歲', '31-50': '31-50 歲',
       '51-65': '51-65 歲', '66+': '66 歲以上',
+      under25: '25 歲以下', '25_40': '25-40 歲', '40_60': '40-60 歲', over60: '60 歲以上',
     },
     gender: { male: '男性', female: '女性' },
     job: {
@@ -26,6 +27,63 @@
       below_500: '500 萬以下', '500_1000': '500 萬-1000 萬',
       '1000_3000': '1000 萬-3000 萬', '3000_10000': '3000 萬-1 億', above_10000: '1 億以上',
     },
+    family: {
+      single: '單身', couple: '已婚 / 同居', family_kids: '有子女家庭', senior: '退休 / 空巢期',
+      married_no_kid: '已婚無子女', married_young_kid: '已婚有未成年子女',
+      married_adult_kid: '已婚子女已成年', empty_nest: '空巢期',
+    },
+    home_type: { apartment: '公寓 / 大樓', house: '透天 / 別墅', rental: '租屋族', none: '無住家保險需求' },
+    property_value: {
+      under_30: '30 萬以下', '30_100': '30-100 萬',
+      '100_300': '100-300 萬', over_300: '300 萬以上',
+    },
+    vehicle_type: {
+      gasoline: '⛽ 汽油 / 柴油車', hybrid: '🔋 油電混合車',
+      electric: '⚡ 電動車 (EV)', motorcycle: '🏍️ 機車',
+    },
+    vehicle_age: {
+      new: '新車 (0-1 年)', nearly_new: '近新車 (1-3 年)',
+      mid: '中齡車 (3-7 年)', old: '老車 (7 年以上)',
+    },
+    vehicle_value: {
+      under_50: '50 萬以下', '50_100': '50-100 萬',
+      '100_200': '100-200 萬', over_200: '200 萬以上',
+    },
+    usage: {
+      commute: '每日通勤', regular: '週末為主',
+      occasional: '偶爾使用', commercial: '商用 / 載客',
+    },
+    driving: {
+      newbie: '新手 (3 年以下)', experienced: '經驗豐富',
+      senior: '銀髮駕駛 (65+)',
+    },
+    budget: {
+      economy: '經濟型', standard: '標準型', premium: '尊榮型',
+      below_3000: '3,000 元以下', '3000_5000': '3,000-5,000 元',
+      '5000_10000': '5,000-10,000 元', '10000_20000': '10,000-20,000 元', above_20000: '20,000+ 元',
+    },
+    property_items_label: {
+      home: '🏠 住宅', content: '📺 動產', liability: '⚖️ 責任',
+      accident: '🤕 意外', travel: '✈️ 旅遊', mobile: '📱 行動裝置', pet: '🐕 寵物',
+    },
+  };
+
+  const SUMMARY_FIELDS = {
+    life: [
+      ['年齡', 'age'], ['性別', 'gender'], ['職業', 'job'],
+      ['年收入', 'income'], ['資產規模', 'asset'],
+    ],
+    property: [
+      ['投保項目', 'property_items', 'property_items_label'],
+      ['住家類型', 'home_type'], ['年齡', 'age'],
+      ['家庭狀況', 'family'], ['財產規模', 'property_value'],
+      ['預算', 'budget'],
+    ],
+    auto: [
+      ['車輛類型', 'vehicle_type'], ['車齡', 'vehicle_age'],
+      ['車輛市價', 'vehicle_value'], ['用車頻率', 'usage'],
+      ['駕駛經驗', 'driving'], ['年齡', 'age'], ['預算', 'budget'],
+    ],
   };
 
   function $(sel) { return document.querySelector(sel); }
@@ -123,15 +181,23 @@
     await renderRecommendations();
   }
 
+  function formatAnswerValue(key, labelKey) {
+    const val = answers[key];
+    if (val == null || val === '') return '-';
+    if (Array.isArray(val)) {
+      const map = LABELS[labelKey || key] || {};
+      return val.map((v) => map[v] || v).join('、') || '-';
+    }
+    const map = LABELS[labelKey || key] || {};
+    return map[val] || val;
+  }
+
   function renderProfileSummary() {
-    const row = (k, v) => `<div class="profile-item"><span>${k}</span><span>${v || '-'}</span></div>`;
-    $('#profileContent').innerHTML = [
-      row('年齡', LABELS.age[answers.age]),
-      row('性別', LABELS.gender[answers.gender]),
-      row('職業', LABELS.job[answers.job]),
-      row('年收入', LABELS.income[answers.income]),
-      row('資產規模', LABELS.asset[answers.asset]),
-    ].join('');
+    const row = (k, v) => `<div class="profile-item"><span>${k}</span><span>${v}</span></div>`;
+    const fields = SUMMARY_FIELDS[insuranceType] || SUMMARY_FIELDS.life;
+    $('#profileContent').innerHTML = fields
+      .map(([label, key, labelKey]) => row(label, formatAnswerValue(key, labelKey)))
+      .join('');
   }
 
   let allocationChart = null;
