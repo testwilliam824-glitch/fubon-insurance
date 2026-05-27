@@ -562,52 +562,35 @@
             <!-- 步驟 1: 上傳保單 -->
             <div id="step1" class="step-section">
                 <div class="form-section">
-                    <h3><span class="step-number">1</span>上傳保單</h3>
-                    
+                    <h3><span class="step-number">1</span>上傳保單照片（選填）</h3>
+                    <p style="color:#666;font-size:14px;margin-bottom:14px;">📌 支援<strong>多張保單</strong>同時上傳（不限富邦，各家保險公司皆可）。圖片僅供業務員後續參考，**保單資訊請於下方手動填寫**以確保正確。</p>
+
                     <div class="upload-area" onclick="document.getElementById('fileInput').click()"
                          ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
                         <div class="upload-icon">📄</div>
-                        <div class="upload-text">點擊或拖曳上傳保單</div>
+                        <div class="upload-text">點擊或拖曳上傳保單（可多選）</div>
                         <div class="upload-hint">支援 PDF、JPG、PNG 格式</div>
                     </div>
-                    <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(event)">
-                    
-                    <div class="policy-preview" id="policyPreview">
-                        <div class="preview-header">
-                            <span class="file-name" id="fileName"></span>
-                            <div class="file-actions">
-                                <button class="btn btn-secondary" onclick="removeFile()">移除</button>
-                                <button class="btn btn-success" onclick="analyzePolicy()">分析保單</button>
-                            </div>
-                        </div>
-                        <div id="previewContent"></div>
-                    </div>
+                    <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" multiple onchange="handleFileSelect(event)">
+
+                    <div id="filesList" style="margin-top:14px;"></div>
                 </div>
-                
+
                 <div class="form-section">
-                    <h3>或手動輸入保單資訊</h3>
-                    <div class="form-group">
-                        <label>保單號碼</label>
-                        <input type="text" id="policyNumber" placeholder="例如：FUBON2024001234">
-                    </div>
-                    <div class="form-group">
-                        <label>險種名稱</label>
-                        <select id="policyType">
-                            <option value="">請選擇險種</option>
-                            <option value="medical">醫療險</option>
-                            <option value="accident">意外險</option>
-                            <option value="life">壽險</option>
-                            <option value="cancer">癌症險</option>
-                            <option value="critical">重大疾病險</option>
-                            <option value="auto">車險</option>
-                            <option value="property">產險（住宅/火險）</option>
-                            <option value="other">其他</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>投保日期</label>
-                        <input type="date" id="policyDate">
-                    </div>
+                    <h3>保單資訊（請手動填寫，確保正確）</h3>
+                    <p style="color:#666;font-size:13px;margin-bottom:14px;">如您有<strong>多張保單</strong>，請逐一新增。所有公司保單都可登錄（富邦、國泰、南山、新光、全球、保誠等）。</p>
+
+                    <div id="policiesContainer"></div>
+
+                    <button type="button" class="btn btn-secondary" onclick="addPolicy()" style="margin-top:10px;width:100%;">
+                        ➕ 新增另一張保單
+                    </button>
+                </div>
+
+                <div style="text-align:center;margin-top:20px;">
+                    <button type="button" class="btn btn-primary" onclick="goToStep2()" style="width:100%;padding:15px;font-size:16px;">
+                        繼續描述事件 →
+                    </button>
                 </div>
             </div>
             
@@ -1008,43 +991,131 @@
             }
         }
         
+        // === 多檔上傳管理 ===
+        const uploadedFiles = []; // {file, url, id}
+
         function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (file) {
-                processFile(file);
+            Array.from(e.target.files).forEach(addFile);
+            e.target.value = ''; // reset 允許重複選同檔案
+        }
+
+        function addFile(file) {
+            const id = 'f' + Date.now() + Math.random().toString(36).slice(2, 6);
+            const url = file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
+            uploadedFiles.push({file, url, id, name: file.name, size: file.size});
+            renderFilesList();
+            updateProgress(Math.min(33, uploadedFiles.length * 11));
+        }
+
+        function removeUploadedFile(id) {
+            const idx = uploadedFiles.findIndex(f => f.id === id);
+            if (idx > -1) {
+                if (uploadedFiles[idx].url) URL.revokeObjectURL(uploadedFiles[idx].url);
+                uploadedFiles.splice(idx, 1);
+                renderFilesList();
             }
         }
-        
-        function processFile(file) {
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('policyPreview').classList.add('active');
-            
-            // 模擬預覽
-            const preview = document.getElementById('previewContent');
-            if (file.type.startsWith('image/')) {
-                const url = URL.createObjectURL(file);
-                preview.innerHTML = `<img src="${url}" style="max-width: 100%; border-radius: 8px;">`;
-            } else {
-                preview.innerHTML = `<div style="padding: 40px; text-align: center; color: #666;">📄 ${file.name}<br><small>PDF文件已上傳</small></div>`;
+
+        function renderFilesList() {
+            const container = document.getElementById('filesList');
+            if (uploadedFiles.length === 0) { container.innerHTML = ''; return; }
+            container.innerHTML = `<div style="font-size:13px;color:#666;margin-bottom:8px;">已上傳 ${uploadedFiles.length} 個檔案：</div>` +
+                uploadedFiles.map(f => `
+                    <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#f8f9fa;border-radius:8px;margin-bottom:6px;">
+                        ${f.url ? `<img src="${f.url}" style="width:48px;height:48px;object-fit:cover;border-radius:4px;">` : '<span style="font-size:32px;">📄</span>'}
+                        <div style="flex:1;font-size:14px;">
+                            <div style="font-weight:500;">${f.name}</div>
+                            <div style="color:#999;font-size:12px;">${(f.size/1024).toFixed(1)} KB</div>
+                        </div>
+                        <button type="button" onclick="removeUploadedFile('${f.id}')" style="background:#fee2e2;color:#dc2626;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px;">移除</button>
+                    </div>
+                `).join('');
+        }
+
+        // === 多保單動態管理 ===
+        let policyCount = 0;
+        const INSURERS = ['富邦人壽', '富邦產險', '國泰人壽', '南山人壽', '新光人壽', '全球人壽', '中國人壽', '保誠人壽', '台灣人壽', '三商美邦', '宏泰人壽', '遠雄人壽', '安聯人壽', '友邦人壽', '其他'];
+
+        function addPolicy() {
+            policyCount++;
+            const idx = policyCount;
+            const html = `
+                <div class="policy-row" data-idx="${idx}" style="border:2px solid #e0e0e0;border-radius:10px;padding:16px;margin-bottom:12px;position:relative;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <strong style="color:#1e3a5f;">保單 #${idx}</strong>
+                        <button type="button" onclick="removePolicy(${idx})" style="background:#fee2e2;color:#dc2626;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;">移除</button>
+                    </div>
+                    <div class="form-group">
+                        <label>保險公司</label>
+                        <select class="policy-insurer">
+                            <option value="">請選擇保險公司</option>
+                            ${INSURERS.map(name => `<option value="${name}">${name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>保單號碼</label>
+                        <input type="text" class="policy-number" placeholder="例如：A123456789">
+                    </div>
+                    <div class="form-group">
+                        <label>險種類型</label>
+                        <select class="policy-type">
+                            <option value="">請選擇險種</option>
+                            <option value="medical">醫療險</option>
+                            <option value="accident">意外險</option>
+                            <option value="life">壽險</option>
+                            <option value="cancer">癌症險</option>
+                            <option value="critical">重大疾病險</option>
+                            <option value="ltc">長照險</option>
+                            <option value="annuity">年金險</option>
+                            <option value="saving">儲蓄險 / 還本</option>
+                            <option value="auto">車險</option>
+                            <option value="property">產險 / 住宅火險</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>投保日期</label>
+                        <input type="date" class="policy-date">
+                    </div>
+                    <div class="form-group">
+                        <label>保額 / 保障內容（選填）</label>
+                        <input type="text" class="policy-coverage" placeholder="例如：意外身故 100 萬、住院日額 2,000 / 日">
+                    </div>
+                </div>
+            `;
+            document.getElementById('policiesContainer').insertAdjacentHTML('beforeend', html);
+        }
+
+        function removePolicy(idx) {
+            const row = document.querySelector(`.policy-row[data-idx="${idx}"]`);
+            if (row) row.remove();
+        }
+
+        function collectPolicies() {
+            return Array.from(document.querySelectorAll('.policy-row')).map(row => ({
+                insurer: row.querySelector('.policy-insurer').value,
+                policy_number: row.querySelector('.policy-number').value.trim(),
+                type: row.querySelector('.policy-type').value,
+                date: row.querySelector('.policy-date').value,
+                coverage: row.querySelector('.policy-coverage').value.trim(),
+            }));
+        }
+
+        function goToStep2() {
+            const policies = collectPolicies();
+            const hasAnyData = policies.some(p => p.insurer || p.policy_number || p.type);
+            if (!hasAnyData) {
+                if (!confirm('您還沒填寫任何保單資訊，確定繼續嗎？\n（若無保單資訊，業務員聯繫時將無法協助理賠分析）')) return;
             }
-            
-            updateProgress(33);
-        }
-        
-        function removeFile() {
-            document.getElementById('fileInput').value = '';
-            document.getElementById('policyPreview').classList.remove('active');
-            updateProgress(0);
-        }
-        
-        // 分析保單（模擬）
-        function analyzePolicy() {
-            alert('✅ 保單分析完成！\n\n偵測到：\n• 保單類型：意外險+醫療險\n• 投保日期：2024/01/15\n• 保額：意外身故100萬、醫療2萬/日');
-            
             document.getElementById('step1').style.display = 'none';
             document.getElementById('step2').style.display = 'block';
             updateProgress(66);
         }
+
+        // 初始化第一張保單欄位
+        document.addEventListener('DOMContentLoaded', () => {
+            addPolicy();
+        });
         
         // 選擇事件類型
         function selectEventType(type) {
@@ -1166,10 +1237,10 @@
                     phone,
                     line_id: document.getElementById('claimLineId').value.trim(),
                     email: document.getElementById('claimEmail').value.trim(),
-                    policy_number: document.getElementById('policyNumber')?.value || '',
-                    policy_type: document.getElementById('policyType')?.value || '',
-                    policy_date: document.getElementById('policyDate')?.value || '',
+                    policies: collectPolicies(),
+                    uploaded_files: uploadedFiles.map(f => ({name: f.name, size: f.size, type: f.file.type})),
                     event_type: document.getElementById('selectedEventType')?.value || '',
+                    event_description: document.getElementById('eventDescription')?.value || '',
                     hospital: document.getElementById('hospitalName')?.value || '',
                     event_date: document.getElementById('eventDate')?.value || '',
                     medical_cost: document.getElementById('medicalCost')?.value || '',
@@ -1192,7 +1263,7 @@
 
         // 初始化
         document.getElementById('eventDate').valueAsDate = new Date();
-        document.getElementById('policyDate').valueAsDate = new Date();
+        // policyDate 已改為動態多筆，不再預設
     </script>
 </body>
 </html>
