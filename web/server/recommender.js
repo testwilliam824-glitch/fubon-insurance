@@ -39,7 +39,15 @@ function generateRecommendations(answers) {
   const type = answers.insurance_type || 'life';
   if (type === 'property') return buildResponse(answers, property);
   if (type === 'auto') return buildResponse(answers, auto);
-  // life：保留現有完整邏輯（已自帶 allocation/budget/disclaimer）
+  if (type === 'claim') {
+    // 理賠案件：不跑推薦邏輯，純收件
+    return {
+      recommendations: [],
+      allocation: [],
+      budget: null,
+      disclaimer: '本系統分析僅為初步參考，實際理賠以富邦保險核保結果為準。',
+    };
+  }
   return life.generateRecommendations(answers);
 }
 
