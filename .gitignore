@@ -5,3 +5,8 @@ web/data/
 .env
 .env.local
 *.log
+
+# 不要 commit screenshot/temp images
+S__*.jpg
+S__*.png
+*.tmp
