@@ -158,6 +158,17 @@ app.post('/api/admin/line/push', requireAdmin, asyncHandler(async (req, res) => 
   res.json({ ok: true });
 }));
 
+// JSON parse error 處理（必須在通用 error handler 前）
+app.use((err, _req, res, next) => {
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'invalid JSON' });
+  }
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'payload too large' });
+  }
+  next(err);
+});
+
 app.use((err, _req, res, _next) => {
   console.error('Server error:', err);
   res.status(500).json({ error: err.message || 'internal error' });

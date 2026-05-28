@@ -648,7 +648,7 @@
                     </div>
                 </div>
                 
-                <button class="btn btn-primary" onclick="generateAnalysis()">🔍 開始分析保單與理賠</button>
+                <button type="button" class="btn btn-primary" onclick="generateAnalysis()">🔍 開始分析保單與理賠</button>
             </div>
             
             <!-- 分析結果 -->
@@ -934,16 +934,16 @@
                 
                 <!-- 列印按鈕 -->
                 <div class="print-section">
-                    <button class="btn btn-primary" onclick="printResult()" style="width: auto; margin-right: 10px;">
+                    <button type="button" class="btn btn-primary" onclick="printResult()" style="width: auto; margin-right: 10px;">
                         🖨️ 列印理賠指引
                     </button>
-                    <button class="btn btn-success" onclick="saveToPDF()" style="width: auto;">
+                    <button type="button" class="btn btn-success" onclick="saveToPDF()" style="width: auto;">
                         💾 儲存為PDF
                     </button>
                 </div>
                 
                 <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-secondary" onclick="resetAll()">重新分析新案件</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetAll()">重新分析新案件</button>
                 </div>
 
                 <!-- 諮詢專員（送出至後台）-->
@@ -956,7 +956,7 @@
                         <input type="text" id="claimLineId" placeholder="💬 LINE ID（選填）" style="padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:15px;">
                         <input type="email" id="claimEmail" placeholder="✉️ Email（選填）" style="padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:15px;">
                     </div>
-                    <button class="btn btn-primary" id="submitClaimBtn" style="width:100%;margin-top:16px;" onclick="submitClaim()">✅ 送出理賠諮詢申請</button>
+                    <button type="button" class="btn btn-primary" id="submitClaimBtn" style="width:100%;margin-top:16px;" onclick="submitClaim()">✅ 送出理賠諮詢申請</button>
                     <p style="text-align:center;margin-top:10px;font-size:12px;color:#999;">⚠️ 本系統分析僅為初步參考，實際理賠以富邦保險核保結果為準。</p>
                 </div>
 

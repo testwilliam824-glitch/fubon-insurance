@@ -1,5 +1,16 @@
 (function () {
   const TOKEN_KEY = 'fubon_admin_token';
+
+  // XSS 防護：HTML escape 所有用戶輸入
+  function esc(v) {
+    if (v == null) return '';
+    return String(v)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
   const LABELS = {
     age: { '0-18': '0-18', '19-30': '19-30', '31-50': '31-50', '51-65': '51-65', '66+': '66+' },
     income: {
@@ -165,12 +176,12 @@
           <tr>
             <td>${date}</td>
             <td><span class="tag ${LABELS.insClass[c.insurance_type] || 'tag-new'}">${LABELS.insType[c.insurance_type] || '💼 壽險'}</span></td>
-            <td><strong>${c.name || ''}</strong>${c.line_user_id ? '<span class="line-badge">LINE</span>' : ''}</td>
-            <td>${c.phone || ''}</td>
-            <td>${LABELS.age[c.age] || c.age || ''}</td>
+            <td><strong>${esc(c.name)}</strong>${c.line_user_id ? '<span class="line-badge">LINE</span>' : ''}</td>
+            <td>${esc(c.phone)}</td>
+            <td>${esc(LABELS.age[c.age] || c.age)}</td>
             <td>${LABELS.income[c.income] || ''}</td>
             <td>${goals}</td>
-            <td>${topRec}</td>
+            <td>${esc(topRec)}</td>
             <td>${priority}${statusTag}</td>
             <td>
               <button class="action-btn btn-view" data-action="view" data-id="${c.id}">查看</button>
@@ -201,12 +212,12 @@
   function viewCustomer(id) {
     const c = customers.find((x) => x.id === Number(id));
     if (!c) return;
-    const item = (label, value) => `<div class="detail-item"><div class="label">${label}</div><div class="value">${value || '-'}</div></div>`;
+    const item = (label, value) => `<div class="detail-item"><div class="label">${label}</div><div class="value">${value ? esc(value) : '-'}</div></div>`;
     const recsHtml = (c.recommendations || []).map((r) => `
-      <div class="recommendation-card priority-${r.priority}" style="margin-bottom:12px;">
-        <h4>${r.title}</h4>
-        <p style="margin-top:6px;"><strong>原因：</strong>${r.reason}</p>
-        <p style="margin-top:6px;"><strong>保單：</strong>${r.products.join('、')}</p>
+      <div class="recommendation-card priority-${esc(r.priority)}" style="margin-bottom:12px;">
+        <h4>${esc(r.title)}</h4>
+        <p style="margin-top:6px;"><strong>原因：</strong>${esc(r.reason)}</p>
+        <p style="margin-top:6px;"><strong>保單：</strong>${(r.products || []).map(esc).join('、')}</p>
       </div>
     `).join('') || '<p style="color:#666;">無推薦資料</p>';
 
@@ -226,11 +237,11 @@
       </div>
       <h4 style="color:var(--primary);margin-bottom:10px;">🎯 規劃目標</h4>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
-        ${(c.planning_goals || []).map((g) => `<span class="tag tag-medium">${LABELS.goals[g] || g}</span>`).join('') || '無'}
+        ${(c.planning_goals || []).map((g) => `<span class="tag tag-medium">${esc(LABELS.goals[g] || g)}</span>`).join('') || '無'}
       </div>
       ${c.insurance_type === 'claim' ? renderClaimDetails(c) : `
       <h4 style="color:var(--primary);margin-bottom:10px;">📋 既有保單</h4>
-      <p style="margin-bottom:18px;">${(c.existing_insurance || []).map((e) => LABELS.existing[e] || e).join('、') || '無'}</p>
+      <p style="margin-bottom:18px;">${(c.existing_insurance || []).map((e) => esc(LABELS.existing[e] || e)).join('、') || '無'}</p>
       <h4 style="color:var(--primary);margin-bottom:10px;">🏆 系統推薦</h4>
       ${recsHtml}`}
       <div class="modal-actions">
@@ -281,12 +292,12 @@
         : `<div style="margin-bottom:18px;display:flex;flex-direction:column;gap:8px;">
           ${policies.map((p, i) => `
             <div style="background:#f8f9fa;border-left:4px solid var(--accent);padding:12px 14px;border-radius:6px;">
-              <div style="font-weight:bold;color:var(--primary);margin-bottom:4px;">保單 #${i + 1} ${p.insurer ? '· ' + p.insurer : ''}</div>
+              <div style="font-weight:bold;color:var(--primary);margin-bottom:4px;">保單 #${i + 1} ${p.insurer ? '· ' + esc(p.insurer) : ''}</div>
               <div style="font-size:13px;color:#555;line-height:1.7;">
-                ${p.policy_number ? `保單號：<strong>${p.policy_number}</strong><br>` : ''}
-                ${p.type ? `險種：${POLICY_TYPE_LABELS[p.type] || p.type}<br>` : ''}
-                ${p.date ? `投保日：${p.date}<br>` : ''}
-                ${p.coverage ? `保額/保障：${p.coverage}` : ''}
+                ${p.policy_number ? `保單號：<strong>${esc(p.policy_number)}</strong><br>` : ''}
+                ${p.type ? `險種：${esc(POLICY_TYPE_LABELS[p.type] || p.type)}<br>` : ''}
+                ${p.date ? `投保日：${esc(p.date)}<br>` : ''}
+                ${p.coverage ? `保額/保障：${esc(p.coverage)}` : ''}
               </div>
             </div>
           `).join('')}
@@ -296,17 +307,17 @@
       ${files.length === 0
         ? '<p style="color:var(--muted);margin-bottom:18px;">無上傳檔案</p>'
         : `<ul style="margin-bottom:18px;padding-left:20px;">
-            ${files.map((f) => `<li style="margin:4px 0;">${f.name} <span style="color:#999;font-size:12px;">(${(f.size / 1024).toFixed(1)} KB)</span></li>`).join('')}
+            ${files.map((f) => `<li style="margin:4px 0;">${esc(f.name)} <span style="color:#999;font-size:12px;">(${(f.size / 1024).toFixed(1)} KB)</span></li>`).join('')}
           </ul>`}
 
       <h4 style="color:var(--primary);margin-bottom:10px;">🩺 事件資訊</h4>
       <div style="background:#fff7ed;border-left:4px solid var(--warning);padding:12px 14px;border-radius:6px;margin-bottom:18px;">
         <div style="line-height:1.8;font-size:14px;">
-          ${c.event_type ? `<div><strong>事件類型：</strong>${EVENT_TYPE_LABELS[c.event_type] || c.event_type}</div>` : ''}
-          ${c.hospital ? `<div><strong>就醫醫院：</strong>${c.hospital}</div>` : ''}
-          ${c.event_date ? `<div><strong>發生日期：</strong>${c.event_date}</div>` : ''}
+          ${c.event_type ? `<div><strong>事件類型：</strong>${esc(EVENT_TYPE_LABELS[c.event_type] || c.event_type)}</div>` : ''}
+          ${c.hospital ? `<div><strong>就醫醫院：</strong>${esc(c.hospital)}</div>` : ''}
+          ${c.event_date ? `<div><strong>發生日期：</strong>${esc(c.event_date)}</div>` : ''}
           ${c.medical_cost ? `<div><strong>預估醫療費：</strong>$${Number(c.medical_cost).toLocaleString()}</div>` : ''}
-          ${c.event_description ? `<div style="margin-top:8px;"><strong>事件描述：</strong><br>${c.event_description}</div>` : ''}
+          ${c.event_description ? `<div style="margin-top:8px;"><strong>事件描述：</strong><br>${esc(c.event_description)}</div>` : ''}
         </div>
       </div>
     `;
