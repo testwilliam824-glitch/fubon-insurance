@@ -309,6 +309,53 @@ body {
 .skip-thanks h4 { color: var(--primary); margin-bottom: 10px; font-size: 20px; }
 .skip-thanks p { color: var(--muted); }
 
+.proposal-banner {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  color: white;
+  padding: 26px 30px;
+  margin: 25px 30px 20px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(30, 58, 95, 0.25);
+}
+
+.proposal-banner h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.proposal-banner p {
+  opacity: 0.92;
+  font-size: 14px;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.cta-button.cta-line {
+  background: #06c755;
+  color: white;
+  flex: 1;
+  min-width: 160px;
+}
+
+.cta-button.cta-phone {
+  background: white;
+  color: var(--primary);
+  flex: 1;
+  min-width: 160px;
+}
+
+.cta-hint {
+  margin-top: 14px;
+  opacity: 0.85;
+  font-size: 13px;
+}
+
 .cta-section {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   color: white;

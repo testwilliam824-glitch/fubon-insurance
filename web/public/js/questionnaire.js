@@ -201,6 +201,7 @@
   }
 
   let allocationChart = null;
+  let cachedResult = null; // 第一階段拿到的推薦結果（送出後才解鎖顯示）
 
   async function renderRecommendations() {
     let data = { recommendations: [], allocation: [], budget: null, disclaimer: '' };
@@ -215,9 +216,29 @@
       console.error('取得推薦失敗', e);
     }
 
+    cachedResult = data;
+    // Phase A：只渲染預算配置圖表 + 摘要
     renderAllocation(data.allocation || [], data.budget);
-    renderRecommendationCards(data.recommendations || []);
-    $('#disclaimer').textContent = data.disclaimer || '';
+    // Phase B（推薦保單 / 免責 / CTA）延後到 submit 成功才顯示
+  }
+
+  function unlockProposal(caseId) {
+    if (!cachedResult) return;
+    renderRecommendationCards(cachedResult.recommendations || []);
+    $('#disclaimer').textContent = cachedResult.disclaimer || '';
+    if ($('#proposalId')) $('#proposalId').textContent = 'FB' + String(caseId).padStart(6, '0');
+
+    // LINE CTA 連結：優先使用 meta tag 設定，否則 fallback
+    const lineUrl =
+      document.querySelector('meta[name="line-contact-url"]')?.content ||
+      'https://line.me/R/ti/p/@fubon-insurance';
+    const btn = document.getElementById('lineContactBtn');
+    if (btn) btn.href = lineUrl;
+
+    $('#contactSection').style.display = 'none';
+    $('#proposalSection').style.display = 'block';
+    // 捲到建議書頂部
+    setTimeout(() => $('#proposalSection').scrollIntoView({ behavior: 'smooth' }), 100);
   }
 
   function renderAllocation(allocation, budget) {
@@ -301,13 +322,11 @@
       });
       if (!res.ok) throw new Error('提交失敗');
       const data = await res.json();
-      $('#contactSection').style.display = 'none';
-      $('#submitSection').classList.add('active');
-      $('#formId').textContent = 'FB' + String(data.id).padStart(6, '0');
+      unlockProposal(data.id);
     } catch (err) {
       alert('提交失敗：' + err.message);
       btn.disabled = false;
-      btn.textContent = '✅ 送出諮詢需求';
+      btn.textContent = '📑 取得個人化建議書';
     }
   }
 

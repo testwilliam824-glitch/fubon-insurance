@@ -138,13 +138,12 @@
         <div class="allocation-chart-wrap"><canvas id="allocationChart"></canvas></div>
         <div class="allocation-table" id="allocationTable"></div>
       </div>
-      <h4 class="section-title">🎯 推薦車險方案</h4>
-      <div id="recommendations"></div>
-      <div class="disclaimer" id="disclaimer"></div>
       <div class="contact-section" id="contactSection">
-        <h4>💬 想要這份方案的完整規劃嗎？</h4>
+        <h4>📑 想看完整的個人化車險建議書嗎？</h4>
         <p class="contact-intro">
-          以上為系統初步建議。請留下聯絡資訊，由<strong>富邦產險合格保險經紀員</strong>為您客製化詳細方案。<br>
+          以上是您的<strong>預算配置預覽</strong>。留下聯絡資訊即可解鎖：<br>
+          ✅ 推薦車險方案（含預估保費）<br>
+          ✅ 富邦產險專屬顧問一對一諮詢<br>
           <span class="muted">您的資訊受嚴格保密，僅供保險諮詢使用。</span>
         </p>
         <div class="input-group"><label>姓名 <span class="req">*</span></label><input type="text" id="name" placeholder="請輸入您的姓名"></div>
@@ -161,13 +160,27 @@
             <option value="anytime">任何時間都可以</option>
           </select>
         </div>
-        <button type="button" class="btn btn-primary submit-btn" id="submitBtn">✅ 送出諮詢需求</button>
+        <button type="button" class="btn btn-primary submit-btn" id="submitBtn">📑 取得個人化建議書</button>
       </div>
-    </div>
 
-    <div class="submit-section" id="submitSection">
-      <p>✅ 資料已提交，專業顧問將盡快與您聯繫！</p>
-      <p style="font-size: 12px; color: #999;">表單編號：<span id="formId"></span></p>
+      <div id="proposalSection" style="display:none;">
+        <div class="proposal-banner">
+          <h2>📑 您的個人化車險建議書</h2>
+          <p>編號：<span id="proposalId"></span>　已寄送一份至您留下的聯絡方式</p>
+        </div>
+        <h4 class="section-title">🎯 推薦車險方案</h4>
+        <div id="recommendations"></div>
+        <div class="disclaimer" id="disclaimer"></div>
+        <div class="cta-section">
+          <h4>💬 想更詳細了解？聯繫專員為您完整規劃</h4>
+          <p>專業顧問將依您的車輛狀況為您客製設計</p>
+          <div class="cta-buttons">
+            <a class="cta-button cta-line" id="lineContactBtn" href="#" target="_blank">💬 LINE 立即諮詢</a>
+            <a class="cta-button cta-phone" href="tel:0212345678">📞 撥打專員電話</a>
+          </div>
+          <p class="cta-hint">服務時間：週一至週五 09:00-18:00</p>
+        </div>
+      </div>
     </div>
   </div>
 
