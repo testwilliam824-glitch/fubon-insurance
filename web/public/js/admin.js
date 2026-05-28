@@ -228,10 +228,11 @@
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
         ${(c.planning_goals || []).map((g) => `<span class="tag tag-medium">${LABELS.goals[g] || g}</span>`).join('') || '無'}
       </div>
+      ${c.insurance_type === 'claim' ? renderClaimDetails(c) : `
       <h4 style="color:var(--primary);margin-bottom:10px;">📋 既有保單</h4>
       <p style="margin-bottom:18px;">${(c.existing_insurance || []).map((e) => LABELS.existing[e] || e).join('、') || '無'}</p>
       <h4 style="color:var(--primary);margin-bottom:10px;">🏆 系統推薦</h4>
-      ${recsHtml}
+      ${recsHtml}`}
       <div class="modal-actions">
         <button class="btn btn-primary" data-action="status" data-id="${c.id}" data-status="contacted">標記已聯繫</button>
         <button class="btn btn-secondary" data-action="status" data-id="${c.id}" data-status="closed">標記已結案</button>
@@ -258,6 +259,58 @@
   }
 
   function closeModal() { $('#customerModal').classList.remove('active'); }
+
+  const POLICY_TYPE_LABELS = {
+    medical: '醫療險', accident: '意外險', life: '壽險', cancer: '癌症險',
+    critical: '重大疾病險', ltc: '長照險', annuity: '年金險', saving: '儲蓄險',
+    auto: '車險', property: '產險 / 住宅火險', other: '其他',
+  };
+
+  const EVENT_TYPE_LABELS = {
+    illness: '🏥 疾病就醫', accident: '🚑 意外傷害',
+    hospital: '🛏️ 住院手術', major: '⚠️ 重大疾病',
+  };
+
+  function renderClaimDetails(c) {
+    const policies = c.policies || [];
+    const files = c.uploaded_files || [];
+    return `
+      <h4 style="color:var(--primary);margin-bottom:10px;">📋 客戶填寫的保單 (${policies.length} 張)</h4>
+      ${policies.length === 0
+        ? '<p style="color:var(--muted);margin-bottom:18px;">客戶未填寫保單資訊</p>'
+        : `<div style="margin-bottom:18px;display:flex;flex-direction:column;gap:8px;">
+          ${policies.map((p, i) => `
+            <div style="background:#f8f9fa;border-left:4px solid var(--accent);padding:12px 14px;border-radius:6px;">
+              <div style="font-weight:bold;color:var(--primary);margin-bottom:4px;">保單 #${i + 1} ${p.insurer ? '· ' + p.insurer : ''}</div>
+              <div style="font-size:13px;color:#555;line-height:1.7;">
+                ${p.policy_number ? `保單號：<strong>${p.policy_number}</strong><br>` : ''}
+                ${p.type ? `險種：${POLICY_TYPE_LABELS[p.type] || p.type}<br>` : ''}
+                ${p.date ? `投保日：${p.date}<br>` : ''}
+                ${p.coverage ? `保額/保障：${p.coverage}` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>`}
+
+      <h4 style="color:var(--primary);margin-bottom:10px;">📎 上傳檔案 (${files.length} 個)</h4>
+      ${files.length === 0
+        ? '<p style="color:var(--muted);margin-bottom:18px;">無上傳檔案</p>'
+        : `<ul style="margin-bottom:18px;padding-left:20px;">
+            ${files.map((f) => `<li style="margin:4px 0;">${f.name} <span style="color:#999;font-size:12px;">(${(f.size / 1024).toFixed(1)} KB)</span></li>`).join('')}
+          </ul>`}
+
+      <h4 style="color:var(--primary);margin-bottom:10px;">🩺 事件資訊</h4>
+      <div style="background:#fff7ed;border-left:4px solid var(--warning);padding:12px 14px;border-radius:6px;margin-bottom:18px;">
+        <div style="line-height:1.8;font-size:14px;">
+          ${c.event_type ? `<div><strong>事件類型：</strong>${EVENT_TYPE_LABELS[c.event_type] || c.event_type}</div>` : ''}
+          ${c.hospital ? `<div><strong>就醫醫院：</strong>${c.hospital}</div>` : ''}
+          ${c.event_date ? `<div><strong>發生日期：</strong>${c.event_date}</div>` : ''}
+          ${c.medical_cost ? `<div><strong>預估醫療費：</strong>$${Number(c.medical_cost).toLocaleString()}</div>` : ''}
+          ${c.event_description ? `<div style="margin-top:8px;"><strong>事件描述：</strong><br>${c.event_description}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
 
   async function pushLineMessage(id) {
     const c = customers.find((x) => x.id === Number(id));
