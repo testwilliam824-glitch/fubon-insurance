@@ -544,6 +544,16 @@
             .analysis-result { display: block !important; }
         }
     </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1e3a5f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="富邦保險">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
 </head>
 <body>
     <div class="container">
@@ -1265,5 +1275,6 @@
         document.getElementById('eventDate').valueAsDate = new Date();
         // policyDate 已改為動態多筆，不再預設
     </script>
+  <script src="/js/pwa.js" defer></script>
 </body>
 </html>
