@@ -40,8 +40,8 @@
     },
     status: { new: '新案件', contacted: '已聯繫', closed: '已結案' },
     statusClass: { new: 'tag-new', contacted: 'tag-contacted', closed: 'tag-closed' },
-    insType: { life: '💼 壽險', property: '🏠 產險', auto: '🚗 車險', claim: '📋 理賠' },
-    insClass: { life: 'tag-new', property: 'tag-low', auto: 'tag-medium', claim: 'tag-high' },
+    insType: { life: '💼 壽險', property: '🏠 產險', auto: '🚗 車險', claim: '📋 理賠', healthcheck: '📊 健檢' },
+    insClass: { life: 'tag-new', property: 'tag-low', auto: 'tag-medium', claim: 'tag-high', healthcheck: 'tag-contacted' },
   };
 
   let customers = [];

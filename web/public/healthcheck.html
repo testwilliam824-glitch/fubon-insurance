@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="insurance-type" content="healthcheck">
+  <title>富邦保單健檢系統</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/questionnaire.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1e3a5f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="富邦保險">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+  <style>
+    .hc-steps { display: flex; justify-content: center; gap: 8px; padding: 16px 30px 0; flex-wrap: wrap; }
+    .hc-step-dot { display:flex; align-items:center; gap:6px; font-size:12px; color:#999; }
+    .hc-step-dot .num { width:24px; height:24px; border-radius:50%; background:#e0e0e0; color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; }
+    .hc-step-dot.active .num { background: var(--primary); }
+    .hc-step-dot.active { color: var(--primary); font-weight:bold; }
+    .hc-step-dot.done .num { background: var(--success); }
+    .hc-step-dot.done { color: var(--success); }
+    .hc-section { padding: 25px 30px; }
+    .hc-section.hidden { display:none; }
+    .hc-section h3 { color:var(--primary); margin-bottom:14px; }
+    .hc-section p.intro { color:var(--muted); font-size:14px; margin-bottom:18px; line-height:1.6; }
+    .policy-row { border:2px solid var(--border); border-radius:10px; padding:14px; margin-bottom:12px; }
+    .policy-row .row-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .policy-row label { display:block; font-size:13px; color:var(--muted); margin-top:8px; margin-bottom:4px; }
+    .policy-row input, .policy-row select { width:100%; padding:9px 11px; border:1px solid #ddd; border-radius:6px; font-size:14px; font-family:inherit; }
+    .improve-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-top:14px; }
+    .improve-card { padding:14px 12px; border:2px solid var(--border); border-radius:10px; cursor:pointer; transition:all 0.2s; text-align:center; }
+    .improve-card:hover { border-color: var(--accent); background:#f0f7ff; }
+    .improve-card.selected { border-color: var(--primary); background: var(--primary); color:white; }
+    .improve-card .ic { font-size:28px; display:block; margin-bottom:6px; }
+    .improve-card .lb { font-size:13px; font-weight:bold; }
+    .hc-buttons { display:flex; gap:10px; margin-top:24px; }
+    .hc-buttons .btn { flex:1; padding:13px; }
+    .gap-warn { background:#fef2f2; border-left:4px solid var(--danger); padding:14px; border-radius:8px; margin-bottom:18px; color:#7f1d1d; font-size:14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 富邦保單健檢系統</h1>
+      <p>盤點現有保單 · 找出保障缺口 · 量身打造補強方案</p>
+      <p style="margin-top:8px;"><a href="/" style="color:rgba(255,255,255,0.85);font-size:13px;text-decoration:underline;">← 返回選擇其他服務</a></p>
+    </div>
+
+    <div class="progress-bar"><div class="progress-fill" id="progressBar"></div></div>
+
+    <!-- 步驟指示 -->
+    <div class="hc-steps">
+      <div class="hc-step-dot active" data-step="1"><span class="num">1</span><span>填保單</span></div>
+      <div class="hc-step-dot" data-step="2"><span class="num">2</span><span>健檢分析</span></div>
+      <div class="hc-step-dot" data-step="3"><span class="num">3</span><span>選想加強</span></div>
+      <div class="hc-step-dot" data-step="4"><span class="num">4</span><span>留資料</span></div>
+      <div class="hc-step-dot" data-step="5"><span class="num">5</span><span>建議書</span></div>
+    </div>
+
+    <!-- Step 1: 既有保單 -->
+    <div class="hc-section" id="step1">
+      <h3>📋 Step 1：輸入您目前的保單</h3>
+      <p class="intro">不限富邦，<strong>各家保險公司</strong>都可登錄。基本資料填寫即可，越完整健檢越準確。</p>
+      <div id="policiesContainer"></div>
+      <button type="button" class="btn btn-secondary" onclick="addPolicy()" style="width:100%;margin-top:10px;">➕ 新增另一張保單</button>
+      <div class="hc-buttons">
+        <button type="button" class="btn btn-primary" onclick="goStep(2)">開始健檢 →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: 健檢分析 -->
+    <div class="hc-section hidden" id="step2">
+      <h3>📊 Step 2：您的保障結構分析</h3>
+      <p class="intro" id="analyzeSummary"></p>
+      <div id="gapWarn" class="gap-warn" style="display:none;"></div>
+      <div class="allocation-chart-wrap" style="max-width:320px;margin:0 auto 20px;">
+        <canvas id="hcChart"></canvas>
+      </div>
+      <div class="allocation-table" id="hcTable"></div>
+      <div class="hc-buttons">
+        <button type="button" class="btn btn-secondary" onclick="goStep(1)">← 修改保單</button>
+        <button type="button" class="btn btn-primary" onclick="goStep(3)">下一步 →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: 想加強哪部分 -->
+    <div class="hc-section hidden" id="step3">
+      <h3>🎯 Step 3：您想優先加強哪些保障？（可複選）</h3>
+      <p class="intro">系統會根據您的選擇 + 既有缺口，為您客製化補強建議</p>
+      <div class="improve-grid" id="improveGrid">
+        <div class="improve-card" data-cat="medical"><span class="ic">🏥</span><span class="lb">醫療險</span></div>
+        <div class="improve-card" data-cat="accident"><span class="ic">🤕</span><span class="lb">意外險</span></div>
+        <div class="improve-card" data-cat="life"><span class="ic">🛡️</span><span class="lb">壽險</span></div>
+        <div class="improve-card" data-cat="cancer"><span class="ic">🎗️</span><span class="lb">癌症險</span></div>
+        <div class="improve-card" data-cat="critical"><span class="ic">⚠️</span><span class="lb">重大疾病</span></div>
+        <div class="improve-card" data-cat="ltc"><span class="ic">👵</span><span class="lb">長照險</span></div>
+        <div class="improve-card" data-cat="annuity"><span class="ic">💰</span><span class="lb">退休年金</span></div>
+        <div class="improve-card" data-cat="saving"><span class="ic">🐷</span><span class="lb">儲蓄理財</span></div>
+      </div>
+      <div class="hc-buttons">
+        <button type="button" class="btn btn-secondary" onclick="goStep(2)">← 上一步</button>
+        <button type="button" class="btn btn-primary" onclick="goStep(4)">下一步 →</button>
+      </div>
+    </div>
+
+    <!-- Step 4: 聯絡資料 -->
+    <div class="hc-section hidden" id="step4">
+      <h3>📑 Step 4：留下聯絡資訊取得個人化建議書</h3>
+      <p class="intro">您的個人化建議書即將完成，請留下聯絡資訊解鎖完整內容。<br><span style="color:#999;font-size:13px;">資訊嚴格保密，僅供保險諮詢使用</span></p>
+      <div class="input-group"><label>年齡區間 <span class="req">*</span></label>
+        <select id="hcAge">
+          <option value="">請選擇</option>
+          <option value="under25">25 歲以下</option>
+          <option value="25_40">25-40 歲</option>
+          <option value="40_60">40-60 歲</option>
+          <option value="over60">60 歲以上</option>
+        </select>
+      </div>
+      <div class="input-group"><label>姓名 <span class="req">*</span></label><input type="text" id="hcName" placeholder="請輸入您的姓名"></div>
+      <div class="input-group"><label>電話 <span class="req">*</span></label><input type="tel" id="hcPhone" placeholder="📞 聯絡電話"></div>
+      <div class="input-group"><label>LINE ID</label><input type="text" id="hcLineId" placeholder="💬 您的 LINE ID（選填）"></div>
+      <div class="input-group"><label>Email</label><input type="email" id="hcEmail" placeholder="✉️ 選填"></div>
+      <div class="hc-buttons">
+        <button type="button" class="btn btn-secondary" onclick="goStep(3)">← 上一步</button>
+        <button type="button" class="btn btn-primary" onclick="submitHC()" id="hcSubmitBtn">📑 取得健檢建議書</button>
+      </div>
+    </div>
+
+    <!-- Step 5: 建議書 + CTA -->
+    <div class="hc-section hidden" id="step5">
+      <div class="proposal-banner">
+        <h2>📑 您的個人化健檢建議書</h2>
+        <p>編號：<span id="hcProposalId"></span>　已寄送一份至您留下的聯絡方式</p>
+      </div>
+      <h4 class="section-title">🎯 建議補強方案</h4>
+      <div id="hcRecommendations"></div>
+      <div class="disclaimer" id="hcDisclaimer"></div>
+      <div class="cta-section">
+        <h4>💬 想更詳細了解？聯繫專員為您完整規劃</h4>
+        <p>專業顧問將依您完整財務狀況、健康告知與既有保單條款逐一評估</p>
+        <div class="cta-buttons">
+          <a class="cta-button cta-line" id="hcLineBtn" href="#" target="_blank">💬 LINE 立即諮詢</a>
+          <a class="cta-button cta-phone" href="tel:0212345678">📞 撥打專員電話</a>
+        </div>
+        <p class="cta-hint">服務時間：週一至週五 09:00-18:00</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const INSURERS = ['富邦人壽','富邦產險','國泰人壽','南山人壽','新光人壽','全球人壽','中國人壽','保誠人壽','台灣人壽','三商美邦','宏泰人壽','遠雄人壽','安聯人壽','友邦人壽','其他'];
+    const POLICY_TYPES = [
+      ['medical','醫療險'],['accident','意外險'],['life','壽險'],['cancer','癌症險'],
+      ['critical','重大疾病險'],['ltc','長照險'],['annuity','年金險'],['saving','儲蓄/還本'],
+      ['auto','車險'],['property','產險'],['other','其他'],
+    ];
+    const CAT_LABEL = Object.fromEntries(POLICY_TYPES);
+    let policyCount = 0;
+    let analyzeResult = null;
+    let hcChart = null;
+
+    function addPolicy() {
+      policyCount++;
+      const idx = policyCount;
+      const html = `
+        <div class="policy-row" data-idx="${idx}">
+          <div class="row-header">
+            <strong style="color:var(--primary);">保單 #${idx}</strong>
+            <button type="button" onclick="document.querySelector('.policy-row[data-idx=\\'${idx}\\']').remove()" style="background:#fee2e2;color:#dc2626;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;">移除</button>
+          </div>
+          <label>保險公司</label>
+          <select class="p-insurer"><option value="">請選擇</option>${INSURERS.map(n=>`<option value="${n}">${n}</option>`).join('')}</select>
+          <label>險種 *（健檢主要依此分類）</label>
+          <select class="p-type"><option value="">請選擇險種類型</option>${POLICY_TYPES.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
+          <label>保單號碼（選填）</label>
+          <input type="text" class="p-number" placeholder="可後續補上">
+          <label>保額 / 主要保障內容（選填）</label>
+          <input type="text" class="p-coverage" placeholder="例如：意外身故 200 萬、住院日額 2000">
+        </div>
+      `;
+      document.getElementById('policiesContainer').insertAdjacentHTML('beforeend', html);
+    }
+
+    function collectPolicies() {
+      return Array.from(document.querySelectorAll('.policy-row')).map(r => ({
+        insurer: r.querySelector('.p-insurer').value,
+        type: r.querySelector('.p-type').value,
+        policy_number: r.querySelector('.p-number').value.trim(),
+        coverage: r.querySelector('.p-coverage').value.trim(),
+      }));
+    }
+
+    async function analyze() {
+      const policies = collectPolicies();
+      const res = await fetch('/api/recommendations', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          insurance_type: 'healthcheck',
+          policies,
+          age: document.getElementById('hcAge')?.value || null,
+          improvement_areas: getSelectedImprove(),
+        }),
+      });
+      analyzeResult = await res.json();
+      return analyzeResult;
+    }
+
+    function renderHealthcheck(allocation) {
+      const labels = {
+        medical:'醫療險', accident:'意外險', life:'壽險', cancer:'癌症險',
+        critical:'重大疾病險', ltc:'長照險', annuity:'退休年金', saving:'儲蓄理財',
+        auto:'車險', property:'產險', gap_total:'⚠️ 保障缺口',
+      };
+      const colors = {
+        medical:'#dc2626', accident:'#f59e0b', life:'#1e3a5f', cancer:'#7c3aed',
+        critical:'#ec4899', ltc:'#06b6d4', annuity:'#10b981', saving:'#c9a227',
+        auto:'#0ea5e9', property:'#8b5cf6', gap_total:'#ef4444',
+      };
+      const entries = Object.entries(allocation || {});
+      const policies = collectPolicies();
+      const validPolicies = policies.filter(p => p.type);
+      const summary = validPolicies.length === 0
+        ? '⚠️ 您目前沒有填寫任何保單，整體保障呈現空白狀態，建議優先補齊基本保障。'
+        : `分析您填寫的 ${validPolicies.length} 張保單，目前保障結構如下（依險種數量比例）：`;
+      document.getElementById('analyzeSummary').textContent = summary;
+
+      // 顯示缺口警示
+      const baseline = ['medical','accident','life','critical'];
+      const existing = new Set(validPolicies.map(p => p.type));
+      const gaps = baseline.filter(c => !existing.has(c));
+      const gapEl = document.getElementById('gapWarn');
+      if (gaps.length > 0 && validPolicies.length > 0) {
+        gapEl.innerHTML = '🚨 <strong>偵測到保障缺口：</strong>' + gaps.map(c => labels[c]).join('、') + ' — 建議補強';
+        gapEl.style.display = 'block';
+      } else {
+        gapEl.style.display = 'none';
+      }
+
+      // table + chart
+      const tableHtml = entries.map(([k,v]) => `
+        <div class="allocation-row">
+          <span class="dot" style="background:${colors[k]||'#999'}"></span>
+          <span>${labels[k]||k}</span>
+          <span class="pct">${v}%</span>
+          <span class="money">${k==='gap_total'?'空白':'已涵蓋'}</span>
+        </div>
+      `).join('');
+      document.getElementById('hcTable').innerHTML = tableHtml;
+
+      if (typeof Chart !== 'undefined') {
+        const canvas = document.getElementById('hcChart');
+        if (hcChart) hcChart.destroy();
+        hcChart = new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            labels: entries.map(([k,v]) => `${labels[k]||k} ${v}%`),
+            datasets: [{
+              data: entries.map(([,v]) => v),
+              backgroundColor: entries.map(([k]) => colors[k]||'#999'),
+              borderWidth: 2, borderColor:'#fff',
+            }],
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position:'bottom' } } },
+        });
+      }
+    }
+
+    function getSelectedImprove() {
+      return Array.from(document.querySelectorAll('.improve-card.selected')).map(c => c.dataset.cat);
+    }
+
+    document.addEventListener('click', (e) => {
+      const card = e.target.closest('.improve-card');
+      if (card) card.classList.toggle('selected');
+    });
+
+    async function goStep(n) {
+      // 切換步驟
+      [1,2,3,4,5].forEach(i => {
+        document.getElementById('step'+i).classList.toggle('hidden', i !== n);
+        const dot = document.querySelector(`.hc-step-dot[data-step="${i}"]`);
+        if (dot) {
+          dot.classList.toggle('active', i === n);
+          dot.classList.toggle('done', i < n);
+        }
+      });
+      document.getElementById('progressBar').style.width = (n*20) + '%';
+
+      // 進 step 2 時要呼叫 analyze
+      if (n === 2) {
+        const policies = collectPolicies();
+        if (policies.filter(p => p.type).length === 0) {
+          if (!confirm('您還沒選擇任何保單的險種類型，分析結果將顯示「保障空白」。確定繼續嗎？')) {
+            goStep(1); return;
+          }
+        }
+        await analyze();
+        renderHealthcheck(analyzeResult.allocation && analyzeResult.allocation.length
+          ? Object.fromEntries(analyzeResult.allocation.map(a => [a.key, a.percent]))
+          : { gap_total: 100 });
+      }
+    }
+
+    async function submitHC() {
+      const name = document.getElementById('hcName').value.trim();
+      const phone = document.getElementById('hcPhone').value.trim();
+      const age = document.getElementById('hcAge').value;
+      if (!age) { alert('請選擇年齡區間'); return; }
+      if (!name || !phone) { alert('請填寫姓名與電話'); return; }
+      const btn = document.getElementById('hcSubmitBtn');
+      btn.disabled = true; btn.textContent = '送出中...';
+      try {
+        const payload = {
+          insurance_type: 'healthcheck',
+          name, phone, age,
+          line_id: document.getElementById('hcLineId').value.trim(),
+          email: document.getElementById('hcEmail').value.trim(),
+          policies: collectPolicies(),
+          improvement_areas: getSelectedImprove(),
+        };
+        const res = await fetch('/api/submissions', {
+          method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('提交失敗');
+        const data = await res.json();
+        // 再叫一次 recommendations 拿完整建議
+        const recRes = await fetch('/api/recommendations', {
+          method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload),
+        });
+        const recData = await recRes.json();
+        renderProposal(data.id, recData);
+        goStep(5);
+      } catch (e) {
+        alert('提交失敗：' + e.message);
+        btn.disabled = false; btn.textContent = '📑 取得健檢建議書';
+      }
+    }
+
+    function renderProposal(caseId, recData) {
+      document.getElementById('hcProposalId').textContent = 'HC' + String(caseId).padStart(6, '0');
+      const recs = recData.recommendations || [];
+      document.getElementById('hcRecommendations').innerHTML = recs.map((r, i) => `
+        <div class="recommendation-card priority-${r.priority}">
+          <span class="badge">${i+1}</span>
+          <h4>${r.title}</h4>
+          <p><strong>適合原因：</strong>${r.reason}</p>
+          <p style="margin-top:10px;"><strong>推薦保單：</strong>${(r.products||[]).join('、')}</p>
+          <ul>${(r.features||[]).map(f => `<li>${f}</li>`).join('')}</ul>
+          ${r.est_premium ? `<div class="est-premium">💵 預估保費：${r.est_premium}</div>` : ''}
+        </div>
+      `).join('');
+      document.getElementById('hcDisclaimer').textContent = recData.disclaimer || '';
+      const lineUrl = document.querySelector('meta[name="line-contact-url"]')?.content || 'https://line.me/R/ti/p/@fubon-insurance';
+      document.getElementById('hcLineBtn').href = lineUrl;
+    }
+
+    // 初始化第一張保單
+    addPolicy();
+  </script>
+
+  <script src="/js/pwa.js" defer></script>
+</body>
+</html>

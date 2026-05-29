@@ -53,6 +53,12 @@
       "short_name": "理賠",
       "url": "/claim.html",
       "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "保單健檢",
+      "short_name": "健檢",
+      "url": "/healthcheck.html",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
     }
   ],
   "categories": ["finance", "business"]

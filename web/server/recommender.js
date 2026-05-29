@@ -2,11 +2,13 @@
 const life = require('./recommenders/life');
 const property = require('./recommenders/property');
 const auto = require('./recommenders/auto');
+const healthcheck = require('./recommenders/healthcheck');
 
 const DISCLAIMER = {
   life: '本系統推薦僅為初步參考，實際保費、保額、給付條件與適用條款須由富邦人壽合格保險經紀員根據您完整的財務狀況、健康告知與需求面談後規劃。最終商品內容以保單條款為準。',
   property: '本系統推薦僅為初步參考，實際保費、保額、承保條件與適用條款須由富邦產險合格保險經紀員根據您的物件評估、風險勘查與需求面談後規劃。最終商品內容以保單條款為準。',
   auto: '本系統推薦僅為初步參考，實際保費、保額、承保條件須由富邦產險合格保險經紀員根據您的車輛狀況、駕駛紀錄與需求面談後規劃。最終商品內容以保單條款為準。',
+  healthcheck: '本健檢結果與建議僅為初步參考，實際保障缺口、保費規劃須由富邦合格保險經紀員根據您完整的家庭財務狀況、健康告知與既有保單條款逐一審核後評估。最終商品內容以保單條款為準。',
 };
 
 function buildResponse(answers, mod) {
@@ -39,6 +41,7 @@ function generateRecommendations(answers) {
   const type = answers.insurance_type || 'life';
   if (type === 'property') return buildResponse(answers, property);
   if (type === 'auto') return buildResponse(answers, auto);
+  if (type === 'healthcheck') return buildResponse(answers, healthcheck);
   if (type === 'claim') {
     // 理賠案件：不跑推薦邏輯，純收件
     return {
