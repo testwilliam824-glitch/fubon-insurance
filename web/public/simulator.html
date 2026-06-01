@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="insurance-type" content="simulator">
+    <title>投資型保單模擬器 - 富邦保險</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="富邦保險">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .slider-container {
+            margin-bottom: 20px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .slider-value {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .result-box.highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .result-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .result-value.small {
+            font-size: 1.3rem;
+        }
+
+        .policy-details {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #666;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .chart-container {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .year-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .year-table th, .year-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .year-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .year-table th:first-child, .year-table td:first-child {
+            text-align: left;
+        }
+
+        .year-table tr:hover {
+            background: #f0f0f0;
+        }
+
+        .break-even {
+            background: #d4edda !important;
+            font-weight: bold;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .info-tag {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <p style="text-align:center;margin-bottom:12px;">
+          <a href="/" style="color:rgba(255,255,255,0.95);font-size:14px;text-decoration:underline;">← 返回選擇其他服務</a>
+        </p>
+        <h1>📊 投資型保單模擬器</h1>
+        <p style="text-align:center;color:rgba(255,255,255,0.9);margin-top:-20px;margin-bottom:25px;font-size:14px;">調整參數即時試算，了解投資型保單的還本年限與長期報酬</p>
+        
+        <div class="main-grid">
+            <!-- 左側：輸入參數 -->
+            <div class="card">
+                <h2 class="card-title">📋 保單設定</h2>
+                
+                <div class="form-group">
+                    <label>被保險人年齡 <span class="info-tag" id="ageTag">30歲</span></label>
+                    <input type="range" id="age" min="18" max="80" value="30">
+                </div>
+
+                <div class="form-group">
+                    <label>投保型態</label>
+                    <select id="policyType">
+                        <option value="A">甲型：Max(保額, 帳戶價值)</option>
+                        <option value="B" selected>乙型：保額 + 帳戶價值</option>
+                    </select>
+                </div>
+
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label>年繳保費</label>
+                        <span class="slider-value" id="premiumValue">NT$ 30萬</span>
+                    </div>
+                    <input type="range" id="premium" min="10" max="100" value="30" step="5">
+                </div>
+
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label>預定繳費年期</label>
+                        <span class="slider-value" id="termValue">6 年</span>
+                    </div>
+                    <input type="range" id="term" min="1" max="20" value="6">
+                </div>
+
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label>基本保額 <span id="ratioCheck" style="color: #28a745; font-size: 0.9rem;">✓ 符合法規</span></label>
+                        <span class="slider-value" id="faceValue">NT$ 285萬</span>
+                    </div>
+                    <input type="range" id="faceAmount" min="100" max="1000" value="285" step="5">
+                </div>
+
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label>預期投資報酬率 (IRR)</label>
+                        <span class="slider-value" id="irrValue">4.0%</span>
+                    </div>
+                    <input type="range" id="irr" min="1" max="8" value="4" step="0.1">
+                </div>
+
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <label>保險相關費用率/年</label>
+                        <span class="slider-value" id="feeValue">1.5%</span>
+                    </div>
+                    <input type="range" id="feeRate" min="0.5" max="5" value="1.5" step="0.1">
+                </div>
+
+                <div class="form-group" style="margin-top: 25px;">
+                    <label>預設客群</label>
+                    <select id="preset">
+                        <option value="">-- 選擇預設 --</option>
+                        <option value="general">一般大眾 (乙型高保障)</option>
+                        <option value="wealthy">高資產族群 (甲型投資導向)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 右側：結果顯示 -->
+            <div class="card">
+                <h2 class="card-title">📈 模擬結果</h2>
+                
+                <div class="results-grid">
+                    <div class="result-box">
+                        <div class="result-label">預估還本年限</div>
+                        <div class="result-value" id="breakEvenYear">-</div>
+                    </div>
+                    <div class="result-box highlight">
+                        <div class="result-label">第20年帳戶價值</div>
+                        <div class="result-value" id="year20Value">-</div>
+                    </div>
+                    <div class="result-box">
+                        <div class="result-label">20年總報酬率</div>
+                        <div class="result-value" id="totalReturn">-</div>
+                    </div>
+                    <div class="result-box">
+                        <div class="result-label">年化報酬率</div>
+                        <div class="result-value" id="annualizedReturn">-</div>
+                    </div>
+                </div>
+
+                <div class="policy-details">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">📋 保單詳細資訊</h3>
+                    <div class="detail-row">
+                        <span class="detail-label">最低死亡給付比率</span>
+                        <span class="detail-value" id="minRatio">190%</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">目前死亡給付比率</span>
+                        <span class="detail-value" id="currentRatio">190%</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">總繳保費</span>
+                        <span class="detail-value" id="totalPremium">NT$ 180萬</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">淨危險保額 (業務傭金基礎)</span>
+                        <span class="detail-value" id="netRisk">NT$ 285萬</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">首年死亡給付</span>
+                        <span class="detail-value" id="deathBenefit">NT$ 570萬</span>
+                    </div>
+                </div>
+
+                <div class="warning" id="warningBox" style="display: none;">
+                    <strong>⚠️ 注意：</strong>目前設定未達最低死亡給付比率要求，請調高基本保額或降低投資比重。
+                </div>
+            </div>
+        </div>
+
+        <!-- 年度明細表 -->
+        <div class="card" style="margin-top: 25px;">
+            <h2 class="card-title">📅 年度帳戶價值明細</h2>
+            <div style="overflow-x: auto;">
+                <table class="year-table">
+                    <thead>
+                        <tr>
+                            <th>年度</th>
+                            <th>已繳保費累計</th>
+                            <th>帳戶價值</th>
+                            <th>死亡給付</th>
+                            <th>損益</th>
+                            <th>報酬率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="yearTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <p style="margin-top:15px;font-size:12px;color:#999;line-height:1.6;">
+              ⚠️ 本試算結果為簡化模型，僅供參考。實際保單費用結構（前置費用、保管費、保險成本、解約費用等）依各商品條款不同；投資報酬率非保證，可能為負。實際規劃請洽富邦合格保險經紀員。
+            </p>
+        </div>
+
+        <!-- 諮詢專員 CTA -->
+        <div class="card" style="margin-top:25px;background:linear-gradient(135deg,#f0f7ff 0%,#e8f4f8 100%);">
+            <h2 class="card-title">💬 想了解實際商品條件？</h2>
+            <p style="color:#555;margin-bottom:18px;line-height:1.7;">投資型保單涉及費用結構、投資標的選擇、保額調整等複雜議題，留下聯絡方式由<strong>富邦人壽合格保險經紀員</strong>為您完整說明。</p>
+            <div style="display:grid;gap:10px;">
+                <input type="text" id="simName" placeholder="姓名 *" style="padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:15px;">
+                <input type="tel" id="simPhone" placeholder="📞 電話 *" style="padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:15px;">
+                <input type="text" id="simLineId" placeholder="💬 LINE ID（選填）" style="padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:15px;">
+                <input type="email" id="simEmail" placeholder="✉️ Email（選填）" style="padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:15px;">
+            </div>
+            <button id="simSubmitBtn" style="width:100%;margin-top:16px;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;font-size:16px;font-weight:bold;cursor:pointer;" onclick="submitSim()">📑 送出諮詢並附上試算結果</button>
+
+            <div id="simDone" style="display:none;margin-top:20px;padding:20px;background:#d4edda;border-radius:10px;text-align:center;">
+                <h3 style="color:#155724;">✅ 已收到您的諮詢</h3>
+                <p style="margin-top:8px;">案件編號：<span id="simCaseId" style="font-weight:bold;"></span></p>
+                <p style="margin-top:14px;font-size:14px;color:#155724;">📎 您剛才的試算結果（保費、保額、預期報酬率等）已一併附上</p>
+                <div style="display:flex;gap:10px;margin-top:18px;">
+                    <a id="simLineBtn" href="#" target="_blank" style="flex:1;padding:12px;background:#06c755;color:white;border-radius:8px;text-decoration:none;font-weight:bold;">💬 LINE 立即諮詢</a>
+                    <a href="tel:0212345678" style="flex:1;padding:12px;background:white;color:#667eea;border:2px solid #667eea;border-radius:8px;text-decoration:none;font-weight:bold;">📞 撥打電話</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/pwa.js" defer></script>
+
+    <script>
+        // 最低比率對照表
+        const minRatioTable = [
+            { maxAge: 30, ratio: 1.90 },
+            { maxAge: 40, ratio: 1.60 },
+            { maxAge: 50, ratio: 1.40 },
+            { maxAge: 60, ratio: 1.20 },
+            { maxAge: 70, ratio: 1.10 },
+            { maxAge: 90, ratio: 1.02 },
+            { maxAge: 999, ratio: 1.00 }
+        ];
+
+        // 取得最低比率
+        function getMinRatio(age) {
+            for (let item of minRatioTable) {
+                if (age <= item.maxAge) return item.ratio;
+            }
+            return 1.00;
+        }
+
+        // 格式化金額
+        function formatMoney(num) {
+            if (num >= 1000000) {
+                return 'NT$ ' + (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return 'NT$ ' + (num / 10000).toFixed(0) + '萬';
+            }
+            return 'NT$ ' + num.toLocaleString();
+        }
+
+        // 計算
+        function calculate() {
+            const age = parseInt(document.getElementById('age').value);
+            const policyType = document.getElementById('policyType').value;
+            const premium = parseInt(document.getElementById('premium').value) * 10000; // 萬轉元
+            const term = parseInt(document.getElementById('term').value);
+            const faceAmount = parseInt(document.getElementById('faceAmount').value) * 10000;
+            const irr = parseFloat(document.getElementById('irr').value) / 100;
+            const feeRate = parseFloat(document.getElementById('feeRate').value) / 100;
+
+            const minRatio = getMinRatio(age);
+            const totalPremium = premium * term;
+
+            // 計算年度帳戶價值
+            let accountValues = [];
+            let cumulativePremium = 0;
+            
+            for (let year = 0; year <= 30; year++) {
+                if (year === 0) {
+                    accountValues.push({
+                        year: 0,
+                        premium: 0,
+                        value: faceAmount * 0.1, // 假設初始帳戶價值為保額10%
+                        deathBenefit: 0
+                    });
+                } else {
+                    cumulativePremium += (year <= term ? premium : 0);
+                    let previousValue = accountValues[year - 1].value;
+                    let newPremium = (year <= term ? premium : 0);
+                    let netReturn = irr - feeRate;
+                    let newValue = (previousValue + newPremium * 0.95) * (1 + netReturn); // 假設95%進入投資帳戶
+                    
+                    // 計算死亡給付
+                    let deathBenefit;
+                    if (policyType === 'A') {
+                        // 甲型：Max(保額, 帳戶價值)
+                        deathBenefit = Math.max(faceAmount, newValue);
+                    } else {
+                        // 乙型：保額 + 帳戶價值
+                        deathBenefit = faceAmount + newValue;
+                    }
+
+                    accountValues.push({
+                        year: year,
+                        premium: cumulativePremium,
+                        value: newValue,
+                        deathBenefit: deathBenefit
+                    });
+                }
+            }
+
+            // 計算還本年限
+            let breakEvenYear = '-';
+            for (let i = 1; i < accountValues.length; i++) {
+                if (accountValues[i].value >= accountValues[i].premium && accountValues[i].premium > 0) {
+                    breakEvenYear = i;
+                    break;
+                }
+            }
+
+            // 計算死亡給付比率
+            let initialAccountValue = accountValues[1].value;
+            let initialDeathBenefit = accountValues[1].deathBenefit;
+            let currentRatio = initialDeathBenefit / initialAccountValue;
+
+            // 更新UI
+            document.getElementById('ageTag').textContent = age + '歲';
+            document.getElementById('premiumValue').textContent = 'NT$ ' + (premium / 10000) + '萬';
+            document.getElementById('termValue').textContent = term + ' 年';
+            document.getElementById('faceValue').textContent = 'NT$ ' + (faceAmount / 10000) + '萬';
+            document.getElementById('irrValue').textContent = (irr * 100).toFixed(1) + '%';
+            document.getElementById('feeValue').textContent = (feeRate * 100).toFixed(1) + '%';
+            
+            document.getElementById('minRatio').textContent = (minRatio * 100).toFixed(0) + '%';
+            document.getElementById('currentRatio').textContent = (currentRatio * 100).toFixed(0) + '%';
+            document.getElementById('totalPremium').textContent = formatMoney(totalPremium);
+            document.getElementById('netRisk').textContent = formatMoney(faceAmount);
+            document.getElementById('deathBenefit').textContent = formatMoney(initialDeathBenefit);
+
+            // 檢查是否符合法規
+            const ratioCheck = document.getElementById('ratioCheck');
+            const warningBox = document.getElementById('warningBox');
+            if (currentRatio < minRatio) {
+                ratioCheck.textContent = '✗ 不符合法規';
+                ratioCheck.style.color = '#dc3545';
+                warningBox.style.display = 'block';
+            } else {
+                ratioCheck.textContent = '✓ 符合法規';
+                ratioCheck.style.color = '#28a745';
+                warningBox.style.display = 'none';
+            }
+
+            // 更新結果卡片
+            document.getElementById('breakEvenYear').textContent = breakEvenYear === '-' ? '-' : '第' + breakEvenYear + '年';
+            
+            let year20Value = accountValues[20] ? accountValues[20].value : 0;
+            document.getElementById('year20Value').textContent = formatMoney(year20Value);
+            
+            let totalReturn = ((year20Value - totalPremium) / totalPremium * 100).toFixed(1);
+            document.getElementById('totalReturn').textContent = totalReturn + '%';
+            
+            // 簡化年化報酬率估算
+            let annualized = (Math.pow(year20Value / totalPremium, 1/20) - 1) * 100;
+            document.getElementById('annualizedReturn').textContent = annualized.toFixed(2) + '%';
+
+            // 更新表格
+            updateTable(accountValues, breakEvenYear);
+        }
+
+        // 更新年度表格
+        function updateTable(accountValues, breakEvenYear) {
+            const tbody = document.getElementById('yearTableBody');
+            tbody.innerHTML = '';
+            
+            for (let i = 0; i <= 30; i++) {
+                if (i === 0) continue;
+                
+                const data = accountValues[i];
+                const row = document.createElement('tr');
+                
+                if (i === breakEvenYear) {
+                    row.classList.add('break-even');
+                }
+
+                const profit = data.value - data.premium;
+                const returnRate = data.premium > 0 ? ((profit / data.premium) * 100).toFixed(1) : '0.0';
+                
+                row.innerHTML = `
+                    <td>第${i}年</td>
+                    <td>${formatMoney(data.premium)}</td>
+                    <td>${formatMoney(data.value)}</td>
+                    <td>${formatMoney(data.deathBenefit)}</td>
+                    <td style="color: ${profit >= 0 ? '#28a745' : '#dc3545'}">${formatMoney(profit)}</td>
+                    <td>${returnRate}%</td>
+                `;
+                
+                tbody.appendChild(row);
+            }
+        }
+
+        // 預設設定
+        function applyPreset() {
+            const preset = document.getElementById('preset').value;
+            if (!preset) return;
+
+            if (preset === 'general') {
+                // 一般大眾：乙型 + 較高保障
+                document.getElementById('policyType').value = 'B';
+                document.getElementById('age').value = 30;
+                document.getElementById('premium').value = 30;
+                document.getElementById('term').value = 6;
+                document.getElementById('faceAmount').value = 300;
+                document.getElementById('irr').value = 4;
+                document.getElementById('feeRate').value = 1.5;
+            } else if (preset === 'wealthy') {
+                // 高資產：甲型 + 投資導向
+                document.getElementById('policyType').value = 'A';
+                document.getElementById('age').value = 45;
+                document.getElementById('premium').value = 100;
+                document.getElementById('term').value = 6;
+                document.getElementById('faceAmount').value = 500;
+                document.getElementById('irr').value = 5;
+                document.getElementById('feeRate').value = 1.2;
+            }
+            calculate();
+        }
+
+        // 事件監聽
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', calculate);
+        });
+
+        document.getElementById('preset').addEventListener('change', applyPreset);
+
+        // 初始化
+        calculate();
+
+        // 提交諮詢
+        async function submitSim() {
+            const name = document.getElementById('simName').value.trim();
+            const phone = document.getElementById('simPhone').value.trim();
+            if (!name || !phone) { alert('請填寫姓名與電話'); return; }
+            const btn = document.getElementById('simSubmitBtn');
+            btn.disabled = true; btn.textContent = '送出中...';
+            try {
+                const payload = {
+                    insurance_type: 'simulator',
+                    name, phone,
+                    line_id: document.getElementById('simLineId').value.trim(),
+                    email: document.getElementById('simEmail').value.trim(),
+                    sim_age: parseInt(document.getElementById('age').value),
+                    sim_policy_type: document.getElementById('policyType').value,
+                    sim_premium_yearly: parseInt(document.getElementById('premium').value) * 10000,
+                    sim_term: parseInt(document.getElementById('term').value),
+                    sim_face_amount: parseInt(document.getElementById('faceAmount').value) * 10000,
+                    sim_irr: parseFloat(document.getElementById('irr').value),
+                    sim_fee_rate: parseFloat(document.getElementById('feeRate').value),
+                    sim_result_year20: document.getElementById('year20Value').textContent,
+                    sim_total_return: document.getElementById('totalReturn').textContent,
+                    sim_break_even: document.getElementById('breakEvenYear').textContent,
+                };
+                const res = await fetch('/api/submissions', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload),
+                });
+                if (!res.ok) throw new Error('提交失敗');
+                const data = await res.json();
+                document.getElementById('simSubmitBtn').style.display = 'none';
+                document.getElementById('simDone').style.display = 'block';
+                document.getElementById('simCaseId').textContent = 'SM' + String(data.id).padStart(6, '0');
+                const lineUrl = document.querySelector('meta[name="line-contact-url"]')?.content || 'https://line.me/R/ti/p/@fubon-insurance';
+                document.getElementById('simLineBtn').href = lineUrl;
+            } catch (e) {
+                alert('提交失敗：' + e.message);
+                btn.disabled = false; btn.textContent = '📑 送出諮詢並附上試算結果';
+            }
+        }
+    </script>
+</body>
+</html>

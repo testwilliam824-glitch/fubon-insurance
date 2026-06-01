@@ -59,6 +59,12 @@
       "short_name": "健檢",
       "url": "/healthcheck.html",
       "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "投資型試算",
+      "short_name": "試算",
+      "url": "/simulator.html",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
     }
   ],
   "categories": ["finance", "business"]

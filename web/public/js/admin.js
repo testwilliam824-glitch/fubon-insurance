@@ -40,8 +40,8 @@
     },
     status: { new: '新案件', contacted: '已聯繫', closed: '已結案' },
     statusClass: { new: 'tag-new', contacted: 'tag-contacted', closed: 'tag-closed' },
-    insType: { life: '💼 壽險', property: '🏠 產險', auto: '🚗 車險', claim: '📋 理賠', healthcheck: '📊 健檢' },
-    insClass: { life: 'tag-new', property: 'tag-low', auto: 'tag-medium', claim: 'tag-high', healthcheck: 'tag-contacted' },
+    insType: { life: '💼 壽險', property: '🏠 產險', auto: '🚗 車險', claim: '📋 理賠', healthcheck: '📊 健檢', simulator: '📈 試算' },
+    insClass: { life: 'tag-new', property: 'tag-low', auto: 'tag-medium', claim: 'tag-high', healthcheck: 'tag-contacted', simulator: 'tag-medium' },
   };
 
   let customers = [];
@@ -239,7 +239,7 @@
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
         ${(c.planning_goals || []).map((g) => `<span class="tag tag-medium">${esc(LABELS.goals[g] || g)}</span>`).join('') || '無'}
       </div>
-      ${c.insurance_type === 'claim' ? renderClaimDetails(c) : `
+      ${c.insurance_type === 'claim' ? renderClaimDetails(c) : c.insurance_type === 'simulator' ? renderSimulatorDetails(c) : `
       <h4 style="color:var(--primary);margin-bottom:10px;">📋 既有保單</h4>
       <p style="margin-bottom:18px;">${(c.existing_insurance || []).map((e) => esc(LABELS.existing[e] || e)).join('、') || '無'}</p>
       <h4 style="color:var(--primary);margin-bottom:10px;">🏆 系統推薦</h4>
@@ -281,6 +281,30 @@
     illness: '🏥 疾病就醫', accident: '🚑 意外傷害',
     hospital: '🛏️ 住院手術', major: '⚠️ 重大疾病',
   };
+
+  function renderSimulatorDetails(c) {
+    const policyType = c.sim_policy_type === 'A' ? '甲型（Max[保額,帳戶價值]）' : c.sim_policy_type === 'B' ? '乙型（保額+帳戶價值）' : '-';
+    return `
+      <h4 style="color:var(--primary);margin-bottom:10px;">📈 試算參數</h4>
+      <div class="detail-grid" style="margin-bottom:18px;">
+        <div class="detail-item"><div class="label">被保險人年齡</div><div class="value">${esc(c.sim_age) || '-'} 歲</div></div>
+        <div class="detail-item"><div class="label">投保型態</div><div class="value">${esc(policyType)}</div></div>
+        <div class="detail-item"><div class="label">年繳保費</div><div class="value">NT$ ${c.sim_premium_yearly ? Number(c.sim_premium_yearly).toLocaleString() : '-'}</div></div>
+        <div class="detail-item"><div class="label">繳費年期</div><div class="value">${esc(c.sim_term)} 年</div></div>
+        <div class="detail-item"><div class="label">基本保額</div><div class="value">NT$ ${c.sim_face_amount ? Number(c.sim_face_amount).toLocaleString() : '-'}</div></div>
+        <div class="detail-item"><div class="label">預期報酬率</div><div class="value">${esc(c.sim_irr)}%</div></div>
+        <div class="detail-item"><div class="label">保險費用率</div><div class="value">${esc(c.sim_fee_rate)}%</div></div>
+      </div>
+      <h4 style="color:var(--primary);margin-bottom:10px;">📊 試算結果</h4>
+      <div style="background:#f8f9fa;border-left:4px solid #667eea;padding:14px;border-radius:6px;margin-bottom:18px;">
+        <div style="line-height:1.8;font-size:14px;">
+          <div><strong>還本年限：</strong>${esc(c.sim_break_even)}</div>
+          <div><strong>第 20 年帳戶價值：</strong>${esc(c.sim_result_year20)}</div>
+          <div><strong>20 年總報酬率：</strong>${esc(c.sim_total_return)}</div>
+        </div>
+      </div>
+    `;
+  }
 
   function renderClaimDetails(c) {
     const policies = c.policies || [];

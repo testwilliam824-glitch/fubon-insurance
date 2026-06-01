@@ -10,6 +10,7 @@ const PRECACHE_URLS = [
   '/auto.html',
   '/claim.html',
   '/healthcheck.html',
+  '/simulator.html',
   '/css/common.css',
   '/css/questionnaire.css',
   '/css/admin.css',

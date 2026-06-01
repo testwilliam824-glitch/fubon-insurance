@@ -43,12 +43,19 @@ function generateRecommendations(answers) {
   if (type === 'auto') return buildResponse(answers, auto);
   if (type === 'healthcheck') return buildResponse(answers, healthcheck);
   if (type === 'claim') {
-    // 理賠案件：不跑推薦邏輯，純收件
     return {
       recommendations: [],
       allocation: [],
       budget: null,
       disclaimer: '本系統分析僅為初步參考，實際理賠以富邦保險核保結果為準。',
+    };
+  }
+  if (type === 'simulator') {
+    return {
+      recommendations: [],
+      allocation: [],
+      budget: null,
+      disclaimer: '本試算結果為簡化模型僅供參考，實際保單費用結構與投資績效依各商品條款及市場狀況而異。',
     };
   }
   return life.generateRecommendations(answers);
