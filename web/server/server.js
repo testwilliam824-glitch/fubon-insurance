@@ -17,6 +17,18 @@ app.use(express.json({
 }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+// 初始化資料庫（serverless 與本地共用；只跑一次，cold start 友善）
+let dbReady = null;
+function ensureDb() {
+  if (!dbReady) dbReady = db.init().catch((e) => { dbReady = null; throw e; });
+  return dbReady;
+}
+
+// API 請求前確保 DB 已就緒（靜態檔不需要，已在上面處理）
+app.use('/api', (req, res, next) => {
+  ensureDb().then(() => next()).catch(next);
+});
+
 function requireAdmin(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.replace(/^Basic\s+/i, '');
@@ -174,17 +186,22 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: err.message || 'internal error' });
 });
 
-async function start() {
-  await db.init();
-  app.listen(PORT, () => {
-    console.log(`🏦 富邦保單智能推薦系統 (PORT ${PORT})`);
-    console.log(`   問卷頁:       http://localhost:${PORT}/`);
-    console.log(`   後台:         http://localhost:${PORT}/admin.html`);
-    console.log(`   LINE Webhook: ${line.isEnabled() ? '✅ 已啟用' : '⚠️ 未設定'}`);
-  });
-}
+// 匯出 app 供 Vercel serverless 使用
+module.exports = app;
 
-start().catch((e) => {
-  console.error('啟動失敗:', e);
-  process.exit(1);
-});
+// 本地 / 容器環境：直接 listen
+if (require.main === module) {
+  ensureDb()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`🏦 富邦保單智能推薦系統 (PORT ${PORT})`);
+        console.log(`   問卷頁:       http://localhost:${PORT}/`);
+        console.log(`   後台:         http://localhost:${PORT}/admin.html`);
+        console.log(`   LINE Webhook: ${line.isEnabled() ? '✅ 已啟用' : '⚠️ 未設定'}`);
+      });
+    })
+    .catch((e) => {
+      console.error('啟動失敗:', e);
+      process.exit(1);
+    });
+}
