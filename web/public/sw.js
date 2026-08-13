@@ -1,5 +1,5 @@
 // 富邦保險 PWA Service Worker
-const CACHE_VERSION = 'fubon-v1';
+const CACHE_VERSION = 'fubon-v2';
 const CACHE_NAME = `fubon-cache-${CACHE_VERSION}`;
 
 // 預先快取靜態資源（app shell）
@@ -52,26 +52,29 @@ self.addEventListener('activate', (event) => {
 // - API：永遠走網路（不快取，避免提交資料被攔截）
 // - 其他：network-first → 失敗 → cache
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  const req = event.request;
+  const url = new URL(req.url);
 
-  // API 一律走網路（避免快取住表單提交）
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(fetch(event.request));
-    return;
+  // ⚠️ 關鍵：API 請求、非 GET（POST/PATCH/DELETE）、跨網域一律「不攔截」
+  //   讓瀏覽器用原生方式處理，避免 SW 重放 POST body 造成 "Load failed"
+  if (
+    req.method !== 'GET' ||
+    url.pathname.startsWith('/api/') ||
+    url.origin !== self.location.origin
+  ) {
+    return; // 不呼叫 respondWith → 瀏覽器原生處理
   }
 
-  // 只處理 GET
-  if (event.request.method !== 'GET') return;
-
+  // 只對同源 GET 靜態資源做 network-first + cache fallback
   event.respondWith(
-    fetch(event.request)
+    fetch(req)
       .then((res) => {
-        if (res && res.status === 200 && res.type !== 'opaque') {
+        if (res && res.status === 200 && res.type === 'basic') {
           const clone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
         }
         return res;
       })
-      .catch(() => caches.match(event.request).then((c) => c || caches.match('/')))
+      .catch(() => caches.match(req).then((c) => c || caches.match('/')))
   );
 });
